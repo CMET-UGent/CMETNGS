@@ -21,16 +21,13 @@
 #' @param plot states wether or not to print the plot within the function
 #' @param ... optional arguments passed on to ggplot call
 #' @keywords taxonomic diversity
-#' @export reslist a list containing a ggplot2 object (p), the underlying
-#' data frame (ggplotdf) and the ranked taxa comprised within "others" (
-#' othertax)
 #' @examples
 #' ## Short example
 #'
 #' # Load precomputed example data
 #' #TODO: find testset
 #'
-#'
+#' @export
 
 makebargraphrawggplot2<-function(tax,shared,topn=8,
                                  taxlevel=c("Regnum","Phylum", "Classis", "Ordo",

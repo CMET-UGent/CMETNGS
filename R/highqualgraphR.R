@@ -16,17 +16,17 @@
 #'  requires ghostscript to be installed.
 #' @param graphicstype passed on to the "type" parameter in bitmap graphics
 #' devices (defaults to "cairo", but requires cairo graphics)
-#' @param colorspace="CMYK" sets the colorspace. For printing such as in papers
+#' @param colorspace sets the colorspace. For printing such as in papers
 #'  the default colorspace should be CMYK but for on-screen viewing srgb may
 #'  be more desirable. Can also be set to gray to enable greyscale printing.
-#' @export
+#'  Defaults to CMYK.
 #' @examples
 #' ## Short example
 #'
 #' # Load precomputed example data
 #' #TODO: find test object
 #'
-#'
+#' @export
 
 
 
@@ -36,10 +36,10 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
                          colorspace="cmyk")
 {
   #sanity check for filename
-  assert_that(is.string(filename))
+  assertthat::assert_that(assertthat::is.string(filename))
   #see ?assertthat:assert_that and ?assertthat:is.string
   #### Check wether x is a ggplot object ####
-  if(!is.ggplot(x)){stop("your object (x) is not a ggplot object")}
+  if(! assertthat::is.ggplot(x)){stop("your object (x) is not a ggplot object")}
   #### Check whether or not a supported extension is given ####
   suportedextensions<-c("pdf", "png", "tiff", "svg","postscript")
   extensioncheck <- extension %in% suportedextensions
@@ -54,12 +54,11 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
   #### check whether or not extrafonts is loaded if not check if installed ####
   if(!("package:extrafont" %in% search())){
     if (!(require("extrafont", character.only=TRUE, quietly=TRUE))) {
-      echo("The extrafont package is not installed or could not be loaded")
+      print("The extrafont package is not installed or could not be loaded")
     }else{
-      require(extrafont)
-      font_import()
-      loadfonts(quiet=TRUE)
-      loadfonts(device = "postscript",quiet=TRUE)
+      extrafont::font_import()
+      extrafont::loadfonts(quiet=TRUE)
+      extrafont::loadfonts(device = "postscript",quiet=TRUE)
     }
   }
 
