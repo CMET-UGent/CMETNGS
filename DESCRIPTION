@@ -1,13 +1,27 @@
 Package: CMETNGS
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Convenience functions for CMET NGS automated pipeline
 Version: 0.1.0
 Author: F.M. Kerckhof, Kim De Paepe and Tim Lacoere
 Maintainer: F.M. Kerckhof <frederiekmaarten.kerckhof@ugent.be>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Set of functions to aid in visualisation and
+    analysis of amplicon NGS data in support of CMETs NGS pipeline.
+License: Proprietary UGent
 Encoding: UTF-8
 LazyData: true
 URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
+Depends: 
+    R (>= 3.3.0), phyloseq
+Imports:
+    vegan,
+    phyloseq,
+    ggplot2,
+    reshape2,
+    plyr,
+    dplyr,
+    gplots,
+    gtools,
+    assertthat
+    
+Date: 2017

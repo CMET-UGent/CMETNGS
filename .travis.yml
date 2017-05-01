@@ -1,0 +1,23 @@
+language: R
+cache: packages
+sudo: false
+
+warnings_are_errors: false
+
+r:
+  - release
+
+bioc_required: true
+bioc_packages:
+  - phyloseq
+
+
+before_deploy:
+  - R -e "install.packages('roxygen2', repos = 'http://cran.rstudio.com')"
+  - R -e "staticdocs::build_site(examples = TRUE)"
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+
+r_github_packages:
+- obigriffith/biostar-tutorials
