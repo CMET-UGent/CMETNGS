@@ -2,3 +2,4 @@
 
 export(highqualgraphR)
 export(makebargraphrawggplot2)
+export(preformattax)

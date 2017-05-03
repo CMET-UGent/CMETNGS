@@ -23,6 +23,7 @@ Imports:
     gplots,
     gtools,
     assertthat,
-    extrafont
+    extrafont,
+    splitstackshape
 Date: 2017
 RoxygenNote: 6.0.1
