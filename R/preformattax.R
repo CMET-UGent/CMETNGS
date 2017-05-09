@@ -4,6 +4,13 @@
 #' asignment detail) and pre-processes it into a data frame for use within R.
 #'
 #' @param taxonomy is a taxonomy file, raw.
+#' @param OTUtax is a logical indicating wether we are dealing with a
+#' classify.otu (TRUE) or classify.seqs (FALSE) taxonomy file. Defaults to
+#' TRUE.
+#' @param probab is a logical indicating whether the classify command was run
+#' with probs =T (i.e. probabilities or bootstrap confidences are included).
+#' Defaults to TRUE (= probs are in the taxonomy file). Currently not
+#' implemented.
 #'
 #' @keywords converter
 #' @examples
@@ -14,18 +21,26 @@
 #'
 #' @export
 
-preformattax <- function(taxonomy)
+preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
 {
 
   tax.good <- cSplit(taxonomy,"Taxonomy",";")
-  tax.good.probs <- cSplit(tax.good,colnames(tax.good)[3:ncol(tax.good)],"(")
-  # tax.good.probs.nona <- subset(tax.good.probs,
-  #           select=which(colSums(apply(tax.good.probs,2,is.na))==0))
+  if(OTUtax==TRUE){
+    tax.good.probs <- cSplit(tax.good,colnames(tax.good)[3:ncol(tax.good)],"(")
+  }else{
+    tax.good.probs <- cSplit(tax.good,colnames(tax.good)[2:ncol(tax.good)],"(")
+  }
   tax.final <- as.data.frame(apply(tax.good.probs,2,
                                    function(x) sub(")","",x)))
-  otunames <- tax.final$OTU
-  tax.final <- subset(tax.final,select=-c(OTU,Size))
-  rownames(tax.final) <- otunames
+  if(OTUtax==TRUE){
+    otunames <- tax.final$OTU
+    tax.final <- subset(tax.final,select=-c(OTU,Size))
+    rownames(tax.final) <- otunames
+  }else{
+    seqnames <- tax.final[,1]
+    tax.final <- tax.final[,-1]
+    rownames(tax.final) <- seqnames
+  }
   colnames(tax.final) <- c("Regnum","Prob_R","Phylum","Prob_P",
                            "Classis","Prob_C","Ordo","Prob_O",
                            "Familia","Prob_F","Genus","Prob_G")

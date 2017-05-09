@@ -4,10 +4,19 @@
 \alias{preformattax}
 \title{reformatter of taxonomy files from mothur for use in R}
 \usage{
-preformattax(taxonomy)
+preformattax(taxonomy, OTUtax = TRUE, probab = TRUE)
 }
 \arguments{
 \item{taxonomy}{is a taxonomy file, raw.}
+
+\item{OTUtax}{is a logical indicating wether we are dealing with a
+classify.otu (TRUE) or classify.seqs (FALSE) taxonomy file. Defaults to
+TRUE.}
+
+\item{probab}{is a logical indicating whether the classify command was run
+with probs =T (i.e. probabilities or bootstrap confidences are included).
+Defaults to TRUE (= probs are in the taxonomy file). Currently not
+implemented.}
 }
 \description{
 This function uses a taxonomy file (i.e. an RDP naive bayesian fixed-rank
