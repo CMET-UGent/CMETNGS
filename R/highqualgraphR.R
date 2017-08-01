@@ -52,16 +52,19 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
     stopifnot(sum(extensioncheck)==length(extension))
   }
   #### check whether or not extrafonts is loaded if not check if installed ####
-  if(!("package:extrafont" %in% search())){
-    if (!(require("extrafont", character.only=TRUE, quietly=TRUE))) {
-      print("The extrafont package is not installed or could not be loaded")
-    }else{
-      extrafont::font_import()
-      extrafont::loadfonts(quiet=TRUE)
-      extrafont::loadfonts(device = "postscript",quiet=TRUE)
-    }
-  }
-
+  #this is rendered moot by using an R package
+  # if(!("package:extrafont" %in% search())){
+  #   if (!(require("extrafont", character.only=TRUE, quietly=TRUE))) {
+  #     print("The extrafont package is not installed or could not be loaded")
+  #   }else{
+  #     extrafont::font_import()
+  #     extrafont::loadfonts(quiet=TRUE)
+  #     extrafont::loadfonts(device = "postscript",quiet=TRUE)
+  #   }
+  # }
+  extrafont::font_import()
+  extrafont::loadfonts(quiet=TRUE)
+  extrafont::loadfonts(device = "postscript",quiet=TRUE)
   #######################################################################
   # If you receive Error:
   #     unknown family 'Arial'

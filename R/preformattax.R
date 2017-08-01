@@ -46,7 +46,7 @@ preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
                            "Familia","Prob_F","Genus","Prob_G")
   if(ncol(tax.final)==12){
     #for RDP & SILVA taxonomies which stop at genus level
-    tax.final <- as.data.frame(mutate(tax.final,Species=NA,Prob_S=NA))
+    tax.final <- as.data.frame(dplyr::mutate(tax.final,Species=NA,Prob_S=NA))
     rownames(tax.final) <- otunames
   }else{
     #for greengenes taxonomy
