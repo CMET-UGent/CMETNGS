@@ -26,19 +26,29 @@ preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
 
   tax.good <- cSplit(taxonomy,"Taxonomy",";")
   if(OTUtax==TRUE){
-    tax.good.probs <- cSplit(tax.good,colnames(tax.good)[3:ncol(tax.good)],"(")
+    tax.good.probs <- do.call(cbind,
+                              lapply(tax.good[,3:ncol(tax.good)], function(x){
+                                       do.call(rbind,
+                                               strsplit(as.character(x),
+                                                        "\\((?=\\d)",
+                                                        perl = TRUE))
+                                }))
   }else{
-    tax.good.probs <- cSplit(tax.good,colnames(tax.good)[2:ncol(tax.good)],"(")
+    tax.good.probs <- do.call(cbind,
+                              lapply(tax.good[,2:ncol(tax.good)], function(x){
+                                do.call(rbind,
+                                        strsplit(as.character(x),
+                                                 "\\((?=\\d)",
+                                                 perl = TRUE))
+                              }))
   }
   tax.final <- as.data.frame(apply(tax.good.probs,2,
                                    function(x) sub(")","",x)))
   if(OTUtax==TRUE){
-    otunames <- tax.final$OTU
-    tax.final <- subset(tax.final,select=-c(OTU,Size))
+    otunames <- tax.good$OTU
     rownames(tax.final) <- otunames
   }else{
-    seqnames <- tax.final[,1]
-    tax.final <- tax.final[,-1]
+    seqnames <- tax.good[,1]
     rownames(tax.final) <- seqnames
   }
   colnames(tax.final) <- c("Regnum","Prob_R","Phylum","Prob_P",
