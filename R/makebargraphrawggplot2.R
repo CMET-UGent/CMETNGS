@@ -236,8 +236,8 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
 
   datamatmelt$Var2o<-factor(datamatmelt$Var2,unique(as.character(datamatmelt$Var2))) #keep original order
   p<-ggplot(data=datamatmelt,aes(x=factor(Var2o),y=value), ...)+
-    geom_bar(stat="identity",aes(fill=factor(Var1)))+
-    theme_minimal(base_size=10)+scale_fill_brewer(palette=brewset)+
+    geom_bar(stat="identity",aes(fill=factor(Var1,levels=rev(levels(Var1)))))+
+    theme_minimal(base_size=10)+scale_fill_brewer(palette=brewset,direction=-1)+
     theme(axis.text.x=element_text(angle=90,hjust=1))+
     labs(x=NULL,y="Relative abundance",fill=paste("Deepest taxon \n(",taxlevel," level)",sep=""),
          title=paste("Taxonomic distribution ",samples," samples",sep=""))
