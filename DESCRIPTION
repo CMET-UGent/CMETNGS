@@ -25,6 +25,7 @@ Imports:
     assertthat,
     extrafont,
     splitstackshape,
-    grDevices
+    grDevices,
+    viridis
 Date: 2017
 RoxygenNote: 6.0.1

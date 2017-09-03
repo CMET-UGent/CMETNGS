@@ -6,30 +6,38 @@
 \usage{
 makebargraphrawggplot2(tax, shared, topn = 8, taxlevel = c("Regnum",
   "Phylum", "Classis", "Ordo", "Familia", "Genus", "Species"), shared.abs = T,
-  tax.prob = F, tresh = 85, samples, plot = TRUE, ...)
+  tax.prob = F, tresh = 85, samples, viridfill = FALSE, plot = TRUE,
+  ...)
 }
 \arguments{
 \item{tax}{is a taxonomy file, raw.}
 
 \item{shared}{is a shared (OTU-by-sample) file, filtered per sample group.}
 
-\item{topn}{is the top number of taxa selected to display (maximum 11)}
+\item{topn}{is the top number of taxa selected to display (maximum 11,
+default 8)}
 
 \item{taxlevel}{is either one of  "Regnum", "Phylum", "Classis",
 "Ordo",  "Familia", "Genus"}
 
 \item{shared.abs}{is a logical showing wether the shared file already
-consists out of absolute counts, or is really the raw csv from Ramiro}
+consists out of direct Illumina counts, or is really the raw csv from
+Ramiro (default TRUE)}
 
-\item{tax.prob}{shows whether the taxonomy file contains probabilites}
+\item{tax.prob}{shows whether the taxonomy file contains probabilites
+4(default FALSE)}
 
 \item{tresh}{is a threshold for the probability taxonomy duplicate matching
-(to be implemented)}
+(to be implemented, default 85)}
 
-\item{samples}{is a string for the title of the generated bargraph
-(e.g. "MOB","OLAND","Fecal samples")}
+\item{samples}{is an optional string for the title of the generated bargraph
+(e.g. "MOB","OLAND","Fecal samples", defualt empty)}
 
-\item{plot}{states wether or not to print the plot within the function}
+\item{viridfill}{whether or not a discrete viridis fill pallette should be
+used (defaults to FALSE)}
+
+\item{plot}{states wether or not to print the plot within the function
+(default TRUE)}
 
 \item{...}{optional arguments passed on to ggplot call}
 }
