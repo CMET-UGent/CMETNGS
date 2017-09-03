@@ -26,6 +26,9 @@ Imports:
     extrafont,
     splitstackshape,
     grDevices,
-    viridis
+    viridis,
+    proto,
+    gclus,
+    grDevices
 Date: 2017
 RoxygenNote: 6.0.1

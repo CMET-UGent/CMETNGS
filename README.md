@@ -17,3 +17,4 @@ Function name | Description
 highqualgraphR | export publication-grade graphics from ggplot2 object
 makebargraphrawggplot2 | make stacked bar graphs from preformatted taxonomy
 preformattax | preformat mothur taxonomies
+coldiss | fast plots of dissimilarity matrices
