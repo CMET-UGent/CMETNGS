@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/CMET-UGent/CMETNGS.svg?branch=master)](https://travis-ci.org/CMET-UGent/CMETNGS)
+
 # CMETNGS_package
 R package with some convenience functions for CMETs NGS pipeline
 
