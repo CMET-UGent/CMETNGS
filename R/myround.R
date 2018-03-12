@@ -1,4 +1,4 @@
-#' alternative rounding function
+#' Alternative rounding function
 #'
 #' @param x numeric vector to be rounded
 #' @examples

@@ -3,6 +3,7 @@
 export(cbindPad)
 export(circleFun)
 export(coldiss)
+export(fasta2dataframe)
 export(gg_color_hue)
 export(highqualgraphR)
 export(makebargraphrawggplot2)

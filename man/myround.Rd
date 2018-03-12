@@ -2,7 +2,7 @@
 % Please edit documentation in R/myround.R
 \name{myround}
 \alias{myround}
-\title{alternative rounding function}
+\title{Alternative rounding function}
 \usage{
 myround(x)
 }
@@ -10,7 +10,7 @@ myround(x)
 \item{x}{numeric vector to be rounded}
 }
 \description{
-alternative rounding function
+Alternative rounding function
 }
 \examples{
 ## Short example

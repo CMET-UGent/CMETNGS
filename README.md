@@ -20,6 +20,7 @@ highqualgraphR | export publication-grade graphics from ggplot2 object
 makebargraphrawggplot2 | make stacked bar graphs from preformatted taxonomy
 preformattax | preformat mothur taxonomies
 coldiss | fast plots of dissimilarity matrices
-cbindPad | function to combine unequal-length data frames (or vectors) into a data.frame
+cbindPad | function to combine unequal-length data frames (or vectors) into a dataframe
 gg_color_hue | function to generate ggplot-like color pallettes
 myround | alternative plotting function
+fasta2dataframe | bioconductor-based readout of (mothur formatted) sequences into a dataframe
