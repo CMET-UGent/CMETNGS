@@ -26,6 +26,7 @@ Imports:
     assertthat,
     extrafont,
     splitstackshape,
+    tidyr,
     grDevices,
     viridis,
     proto,

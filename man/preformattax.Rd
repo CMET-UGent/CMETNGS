@@ -2,9 +2,10 @@
 % Please edit documentation in R/preformattax.R
 \name{preformattax}
 \alias{preformattax}
-\title{reformatter of taxonomy files from mothur for use in R}
+\title{Reformatter of taxonomy files from mothur for use in R}
 \usage{
-preformattax(taxonomy, OTUtax = TRUE, probab = TRUE)
+preformattax(taxonomy, OTUtax = TRUE, probab = TRUE, keepProbab = TRUE,
+  keepOTU = FALSE, keepSize = FALSE)
 }
 \arguments{
 \item{taxonomy}{is a taxonomy file, raw.}
@@ -15,8 +16,21 @@ TRUE.}
 
 \item{probab}{is a logical indicating whether the classify command was run
 with probs =T (i.e. probabilities or bootstrap confidences are included).
-Defaults to TRUE (= probs are in the taxonomy file). Currently not
-implemented.}
+Defaults to TRUE (= probs are in the taxonomy file). Currently ignored for
+if FALSE.}
+
+\item{keepProbab}{is a logical indicating whether or not to keep the columns
+with the probabilities. Defaults to TRUE. Ignored when probab is FALSE}
+
+\item{keepOTU}{is a logical indicating whether or not to include a column with
+the OTU names called OTU. Defaults to FALSE.}
+
+\item{keepSize}{is a logical indicating whether or not to include a column
+that contains the total read count within the OTU. Defaults to FALSE.}
+}
+\value{
+A dataframe with a splitted taxonomy file.
+The Size column is dropped.
 }
 \description{
 This function uses a taxonomy file (i.e. an RDP naive bayesian fixed-rank

@@ -1,4 +1,4 @@
-#' reformatter of taxonomy files from mothur for use in R
+#' Reformatter of taxonomy files from mothur for use in R
 #'
 #' This function uses a taxonomy file (i.e. an RDP naive bayesian fixed-rank
 #' asignment detail) and pre-processes it into a data frame for use within R.
@@ -9,10 +9,18 @@
 #' TRUE.
 #' @param probab is a logical indicating whether the classify command was run
 #' with probs =T (i.e. probabilities or bootstrap confidences are included).
-#' Defaults to TRUE (= probs are in the taxonomy file). Currently not
-#' implemented.
-#'
+#' Defaults to TRUE (= probs are in the taxonomy file). Currently ignored for
+#' if FALSE.
+#' @param keepProbab is a logical indicating whether or not to keep the columns
+#' with the probabilities. Defaults to TRUE. Ignored when probab is FALSE
+#' @param keepOTU is a logical indicating whether or not to include a column with
+#' the OTU names called OTU. Defaults to FALSE.
+#' @param keepSize is a logical indicating whether or not to include a column
+#' that contains the total read count within the OTU. Defaults to FALSE.
+#' @importFrom splitstackshape cSplit
 #' @keywords converter
+#' @return A dataframe with a splitted taxonomy file.
+#' The Size column is dropped.
 #' @examples
 #' ## Short example
 #'
@@ -21,10 +29,11 @@
 #'
 #' @export
 
-preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
+preformattax <- function(taxonomy, OTUtax=TRUE, probab=TRUE, keepProbab=TRUE,
+                         keepOTU=FALSE, keepSize=FALSE)
 {
 
-  tax.good <- cSplit(taxonomy,"Taxonomy",";")
+  tax.good <- splitstackshape::cSplit(taxonomy,"Taxonomy",";")
   if(OTUtax==TRUE){
     tax.good.probs <- do.call(cbind,
                               lapply(tax.good[,3:ncol(tax.good)], function(x){
@@ -118,9 +127,11 @@ preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
     }else{
       if(!is.na(as.character(tax.final$Ordo[i])))
       {
-        charvectfamilia[i]<-paste0(as.character(tax.final$Ordo[i]),"_unclassified")
+        charvectfamilia[i]<-paste0(as.character(tax.final$Ordo[i]),
+                                   "_unclassified")
       }else{
-        charvectfamilia[i]<-paste0(as.character(tax.final$Classis[i]),"_unclassified")
+        charvectfamilia[i]<-paste0(as.character(tax.final$Classis[i]),
+                                   "_unclassified")
       }
 
     }
@@ -128,5 +139,17 @@ preformattax <- function(taxonomy,OTUtax=TRUE, probab=TRUE)
   }
   tax.final$Familia <- factor(charvectfamilia)
   tax.final$Prob_F <- probvectfamilia
+  #TODO: implement if NA's occur heigher than family level
+  if(keepProbab==TRUE){
+    tax.final <- tax.final
+  }else{
+    tax.final <- tax.final %>% dplyr::select(-contains("Prob"))
+  }
+  if(keepOTU==TRUE){
+    tax.final <- data.frame(OTU=rownames(tax.final),tax.final)
+  }
+  if(keepSize==TRUE){
+    tax.final <- data.frame(Size=tax.good$Size,tax.final)
+  }
   return(tax.final)
 }
