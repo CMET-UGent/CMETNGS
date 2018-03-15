@@ -18,6 +18,7 @@
 #' @param keepSize is a logical indicating whether or not to include a column
 #' that contains the total read count within the OTU. Defaults to FALSE.
 #' @importFrom splitstackshape cSplit
+#' @importFrom dplyr contains
 #' @keywords converter
 #' @return A dataframe with a splitted taxonomy file.
 #' The Size column is dropped.

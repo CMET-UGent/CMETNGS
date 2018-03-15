@@ -1,6 +1,7 @@
 #' function to generate ggplot-like color pallettes
 #'
 #' @param n number of colors
+#' @importFrom grDevices hcl
 #' @examples
 #' ## Short example
 #'

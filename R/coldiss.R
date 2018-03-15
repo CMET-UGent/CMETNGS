@@ -10,7 +10,9 @@
 #' @param byrank specifiy either equal-sized classes (TRUE) or equal-length
 #' intervals (FALSE). Defaults to TRUE
 #' @param diag print object labels on the diagonal (defaults to FALSE)
-#'
+#' @importFrom gclus dmat.color plotcolors order.single
+#' @importFrom graphics par
+#' @importFrom grDevices cm.colors
 #' @keywords heatmap
 #' @examples
 #' ## Short example

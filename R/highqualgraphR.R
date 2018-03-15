@@ -20,6 +20,10 @@
 #'  the default colorspace should be CMYK but for on-screen viewing srgb may
 #'  be more desirable. Can also be set to gray to enable greyscale printing.
 #'  Defaults to CMYK.
+#' @importFrom assertthat is.string
+#' @importFrom ggplot2 is.ggplot
+#' @importFrom grDevices pdf png tiff svg postscript dev.off
+#' @importFrom extrafont embed_fonts
 #' @examples
 #' ## Short example
 #'
@@ -39,7 +43,7 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
   assertthat::assert_that(assertthat::is.string(filename))
   #see ?assertthat:assert_that and ?assertthat:is.string
   #### Check wether x is a ggplot object ####
-  if(! assertthat::is.ggplot(x)){stop("your object (x) is not a ggplot object")}
+  if(! ggplot2::is.ggplot(x)){stop("your object (x) is not a ggplot object")}
   #### Check whether or not a supported extension is given ####
   suportedextensions<-c("pdf", "png", "tiff", "svg","postscript")
   extensioncheck <- extension %in% suportedextensions

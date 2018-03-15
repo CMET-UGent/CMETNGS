@@ -26,6 +26,11 @@
 #' @param plot states wether or not to print the plot within the function
 #' (default TRUE)
 #' @param ... optional arguments passed on to ggplot call
+#' @importFrom dplyr desc funs
+#' @importFrom vegan decostand
+#' @importFrom ggplot2 ggplot aes geom_bar theme element_text labs theme_minimal scale_fill_brewer
+#' @importFrom reshape2 melt
+#' @importFrom viridis scale_fill_viridis
 #' @keywords taxonomic diversity
 #' @examples
 #' ## Short example

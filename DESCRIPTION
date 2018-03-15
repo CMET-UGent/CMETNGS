@@ -31,6 +31,6 @@ Imports:
     viridis,
     proto,
     gclus,
-    grDevices
+    magrittr
 Date: 2018
 RoxygenNote: 6.0.1
