@@ -26,6 +26,8 @@ Typically used in conjunction with fasta2dataframe.
 ## Short example
 
 # Load precomputed example data
-#TODO: add export option
+data(otureps)
+# write out the associated fasta
+df2fasta(otureps,filename="oturep.fasta",seqIDcolumn="OTU")
 
 }

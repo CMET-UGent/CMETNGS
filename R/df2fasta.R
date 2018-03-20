@@ -15,7 +15,9 @@
 #' ## Short example
 #'
 #' # Load precomputed example data
-#' #TODO: add export option
+#' data(otureps)
+#' # write out the associated fasta
+#' df2fasta(otureps,filename="oturep.fasta",seqIDcolumn="OTU")
 #'
 #' @export
 
@@ -32,7 +34,7 @@
 
    identifiers <- dataframe %>% dplyr::select(eval(seqIDcolumn))
    seq <- dataframe %>% dplyr::select(eval(seqColumn))
-   dna <- Biostrings::DNAStringSet(seq)
+   dna <- Biostrings::DNAStringSet(seq$readseq)
    names(dna) <- identifiers
    Biostrings::writeXStringSet(dna, paste(filename,".fasta",sep=""))
  }
