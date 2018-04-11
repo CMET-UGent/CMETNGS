@@ -12,7 +12,7 @@
 #'  (preferably absolute path)
 #' @param taxonomy file location string for the taxonomy file (preferably
 #'  absolute path)
-#' @param oturep optional file location for the respresentative fasta file (
+#' @param otureps optional file location for the respresentative fasta file (
 #'  preferably absolute path)
 #' @param metadata optional file location for the metadata.xlsx file (preferably
 #'  absolute path)
@@ -31,8 +31,12 @@
 #'                               package = "CMETNGS",mustWork = TRUE)
 #' taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
 #'                               package = "CMETNGS",mustWork = TRUE)
+#' reptworeps <- MakeExcelReport(shareddataset,taxonomydataset)
 #'
-#' ## Eaxample with otureps
+#' ## Example with otureps
+#' oturepsdataset <- system.file("extdata","large_otureps.fasta",
+#'                               package="CMETNGS",mustWork=TRUE)
+#' reptwreps <- MakeExcelReport(shareddataset,taxonomydataset,oturepsdataset, resultfn="ResultsOTUreps.xlsx")
 #'
 #' @export
 
@@ -64,7 +68,9 @@ MakeExcelReport <- function(shared,taxonomy,otureps=NULL,metadata=NULL,
   taxonomy.clean <- taxonomy.clean %>% dplyr::select(-contains("Prob"))
 
   #### merge dfs ####
-  mergedf <- dplyr::inner_join(shared.t.ns.otu,taxonomy.clean,by="OTU")
+  suppressWarnings(mergedf <- dplyr::inner_join(shared.t.ns.otu,
+                                                taxonomy.clean,
+                                                by="OTU"))
 
   if(!is.null(otureps)){
     if(!is.character(otureps)|
@@ -75,7 +81,9 @@ MakeExcelReport <- function(shared,taxonomy,otureps=NULL,metadata=NULL,
     }else{
       otureps <- CMETNGS::fasta2dataframe(otureps)
       names(otureps)[1] <- "OTU"
-      mergedfreps <- dplyr::inner_join(mergedf,otureps,by="OTU")
+      suppressWarnings(mergedfreps <- dplyr::inner_join(mergedf,
+                                                        otureps,
+                                                        by="OTU"))
       openxlsx::write.xlsx(mergedfreps,file=resultfn)
       return(mergedfreps)
     }

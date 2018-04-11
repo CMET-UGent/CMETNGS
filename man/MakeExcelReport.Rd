@@ -14,14 +14,14 @@ MakeExcelReport(shared, taxonomy, otureps = NULL, metadata = NULL,
 \item{taxonomy}{file location string for the taxonomy file (preferably
 absolute path)}
 
+\item{otureps}{optional file location for the respresentative fasta file (
+preferably absolute path)}
+
 \item{metadata}{optional file location for the metadata.xlsx file (preferably
 absolute path)}
 
 \item{resultfn}{desired filename/path (absolute) for the resulting Excel
 report. Defaults to Results.xlsx in the current working directory.}
-
-\item{oturep}{optional file location for the respresentative fasta file (
-preferably absolute path)}
 }
 \value{
 A dataframe with the contents of the excel file that was written
@@ -42,8 +42,12 @@ shareddataset <- system.file("extdata","large_shared_file.shared",
                               package = "CMETNGS",mustWork = TRUE)
 taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
                               package = "CMETNGS",mustWork = TRUE)
+reptworeps <- MakeExcelReport(shareddataset,taxonomydataset)
 
-## Eaxample with otureps
+## Example with otureps
+oturepsdataset <- system.file("extdata","large_otureps.fasta",
+                              package="CMETNGS",mustWork=TRUE)
+reptwreps <- MakeExcelReport(shareddataset,taxonomydataset,oturepsdataset, resultfn="ResultsOTUreps.xlsx")
 
 }
 \keyword{excel}

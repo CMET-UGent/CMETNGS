@@ -31,6 +31,8 @@ Imports:
     viridis,
     proto,
     gclus,
-    magrittr
+    magrittr,
+    data.table,
+    openxlsx
 Date: 2018
 RoxygenNote: 6.0.1
