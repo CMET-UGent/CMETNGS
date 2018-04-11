@@ -34,7 +34,7 @@
 
    identifiers <- dataframe %>% dplyr::select(eval(seqIDcolumn))
    seq <- dataframe %>% dplyr::select(eval(seqColumn))
-   dna <- Biostrings::DNAStringSet(seq$readseq)
-   names(dna) <- identifiers
+   dna <- Biostrings::DNAStringSet(seq[,1])
+   names(dna) <- as.character(identifiers[,1])
    Biostrings::writeXStringSet(dna, paste(filename,".fasta",sep=""))
  }
