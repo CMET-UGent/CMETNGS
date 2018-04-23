@@ -33,6 +33,7 @@ Imports:
     gclus,
     magrittr,
     data.table,
-    openxlsx
+    openxlsx,
+    nlme
 Date: 2018
 RoxygenNote: 6.0.1
