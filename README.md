@@ -24,3 +24,6 @@ cbindPad | function to combine unequal-length data frames (or vectors) into a da
 gg_color_hue | function to generate ggplot-like color pallettes
 myround | alternative plotting function
 fasta2dataframe | bioconductor-based readout of (mothur formatted) sequences into a dataframe
+df2fasta | bioconductor-based inverse of `fasta2dataframe` (useful in case you did some filtering via fasta2dataframe but need a fasta output for downstream)
+MakeExcelReport | R function that takes absolute (!) paths to a shared, taxonomy and optional otureps fasta and automatically creates an excel file from it.
+myround | more robust rounding function
