@@ -7,7 +7,7 @@ R package with some convenience functions for CMETs NGS pipeline
 
 ```
 library(devtools)
-install_github("https://github.com/CMET-UGent/CMETNGS")
+install_github("CMET-UGent/CMETNGS")
 ```
 
 ## Available functions
