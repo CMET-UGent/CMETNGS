@@ -1,0 +1,884 @@
+---
+title: "Mothur workshop amplicon report"
+author: "FM Kerckhof, Kim De Paepe & Tim Lacoere"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: report_styles.css
+    fig_caption: yes
+    highlight: espresso
+    keep_md: yes
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 2
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+  word_document:
+    fig_caption: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+# Introduction
+
+This is an automatically generated report from Illumina 16S rRNA amplicon data 
+as processed using the procedure described in 
+[The Great mock report](https://github.ugent.be/LabMETNGS/TheGreatMockReport), 
+the in-house SOP of CMET. This report should be run in an R project in a 
+subdirectory of the PrimerClipped (or Raw) folder that is at the same level of 
+the "fastqs" folder to be able to access the files required.
+It should be noted that **THIS REPORT COMES WITH ABSOLUTELY NO WARRANTY** . It 
+is intended for you, as a researcher, to develop hypotheses based upon an 
+initial *exploratory data analysis* (EDA). 
+
+# Pre-processing and overview
+
+In this section we will discuss which different pre-processing steps were 
+executed and how they influenced the data. The aim of this chapter is to alert 
+the user to which choices were made during pre-processing. If the persons 
+reading this report do not agree with certain steps, another way of
+pre-processing the data can be performed. Overall, this section should 
+preferably be read after reading or in conjonction to reading The Great Mock 
+report, to follow which steps are taken in practice. 
+
+## Sequence assembly and cleanup
+
+```{r setupanddatareadout,echo=FALSE,include=FALSE}
+#### USER SETTINGS ####
+silvadb <- 132 # set the version of the SILVA release that was used for classification
+rdprel <- 16 #set the version of the RDP release that was used
+fldr <- "../" #relative location from the report project to the data.
+dataname <- "Workshop"
+metadatafn <- "MetaData.xlsx" #relative path (from fldr) to select other Metadata files
+#during the SOP workshop we'll tell people to use the pre-trimmed file in the 
+#taxonomy folders on the server to have a more reproducible way of calling this.
+
+#### load required packages ####
+library(scales)   #for percent formatting
+library(ggplot2)  #for adequate plotting
+library(plyr)     #data wrangling (mapvalues)
+suppressPackageStartupMessages(library(dplyr))    #data wrangling
+library(tidyr)    #tidy data
+suppressPackageStartupMessages(library(reshape2)) #for melt function
+suppressPackageStartupMessages(library(vegan))    #for ecological calculations
+library(phyloseq) #for microbiome census data processing
+library(ade4)     #for ecological calculations
+suppressPackageStartupMessages(library(gplots))   #for heatmap.2
+library(splitstackshape) #for csplit
+library(knitr)    #for simple markdown tables
+library(xtable)   #for more advanced tables
+library(ape)      #dealing with phylogenetic trees
+library(openxlsx) #handling Excel files without Java deps
+library(readxl)   #faster handling of excel files
+library(data.table) #data wrangling
+library(SPECIES)  #alpha diversity estimators
+library(parallel) #parallel computation in R
+suppressPackageStartupMessages(library(purrr)) #functional programming
+suppressPackageStartupMessages(library(DESeq2))  
+#normalization procedures to cope with differences in smp depth
+suppressPackageStartupMessages(library(NMF))
+suppressPackageStartupMessages(library(devtools)) #nicer session info
+suppressPackageStartupMessages(library(viridis)) # for color-blind nice color palettes
+suppressPackageStartupMessages(library(Phenoflow))
+suppressPackageStartupMessages(library(pander))
+suppressPackageStartupMessages(library(CMETNGS)) # support functions
+library(RCM) # advanced ordination
+# #### user defined functions ####
+# #need to be integrated in dedicated package at https://github.ugent.be/LabMETNGS/CMETNGS_package
+
+# source("bargraphGG.R") #will be integrated into CMETNGS package
+#### load data ####
+if(.Platform$OS.type == "unix") {
+  crfn <- system(paste("ls",fldr," | grep contigs.report"),intern=TRUE)
+} else {
+  filelist <- list.files(fldr)
+  crfn <- grep(".*contigs.report",filelist,value=TRUE)
+}
+fn <- sub(".contigs.report","",crfn)
+ini <- fread(paste(fldr,"/",crfn,sep=""),header=TRUE)
+csum <- fread(paste(fldr,"/",fn,
+                         ".trim.contigs.summary",sep=""),header=TRUE)
+firsttrimsum <- fread(paste(fldr,"/",fn,
+                                 ".trim.contigs.good.summary",sep=""),
+                           header=TRUE)
+uniquesum <- fread(paste(fldr,"/",fn,
+                              ".trim.contigs.good.unique.summary",sep=""),
+                        header=TRUE)
+postalnsum <- fread(paste(fldr,"/",fn,
+                        ".trim.contigs.good.unique.good.filter.summary",sep=""),
+                         header=TRUE)
+preclussum <- fread(paste(fldr,"/",fn,
+                ".trim.contigs.good.unique.good.filter.unique.precluster.summary",
+                sep=""),
+                header=TRUE)
+postuchimeclasssum <- fread(paste(fldr,"/",fn,                                 ".trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.summary",
+                                  sep=""),
+                                       header=TRUE)
+
+# By default (if only one taxonomy, run the code below)
+# otutaxonomy <- fread(paste(fldr,"/",fn,
+# ".trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.03.cons.taxonomy",
+#             sep=""),header=TRUE)
+# otherwise, we default to SILVA (for now)
+otutaxonomy <- fread(paste(fldr,"/",fn,
+".trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.opti_mcc.0.03.cons.taxonomy",
+            sep=""),header=TRUE)
+
+taxonomy.spl <- CMETNGS::preformattax(otutaxonomy)
+taxonomy.np <- taxonomy.spl %>% dplyr::select(-dplyr::contains("Prob"))
+
+shared <- fread(paste(fldr,"/",fn,
+          ".trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.opti_mcc.shared",sep=""),
+          header=TRUE)
+shared <- as.data.frame(shared)
+desgroups <- shared$Group
+shared.x <- shared[,4:ncol(shared)]
+rownames(shared.x) <- desgroups
+shared.t <- as.data.frame(t(shared.x))
+shared.t.ns <- shared.t[which(rowSums(shared.t)!=1),]
+sharedns <- data.frame(label=rep(0.03,ncol(shared.t.ns)),
+                       Group=colnames(shared.t.ns),
+                       numOtus=nrow(shared.t.ns),t(shared.t.ns))
+suppressWarnings(try(write.table(x=sharedns,file=paste(fldr,"/sharedns.shared",sep=""),
+                 row.names=FALSE,quote=FALSE),silent=TRUE))
+wb <- openxlsx::write.xlsx(x = shared.t, file = "Results.xlsx", 
+                     sheetName = "OTU_table" )
+openxlsx::addWorksheet(wb,sheetName = "OTU_tablenosingletons")
+openxlsx::writeData(wb,sheet="OTU_tablenosingletons",x=shared.t.ns)
+openxlsx::saveWorkbook(wb,file="Results.xlsx",overwrite=TRUE)
+#filter taxonomy (i.e. remove singletons from taxonomy)
+taxonomy.np.ns <- taxonomy.np[which(rownames(taxonomy.np) 
+                                  %in% rownames(shared.t.ns)),]
+#metadata <- readxl::read_excel("MetaData.xlsx",sheet = "ForR")
+metadata.tibble <- readxl::read_excel(paste0(fldr,metadatafn),sheet="ForR")
+factdescs <- readxl::read_excel(paste0(fldr,metadatafn),sheet="FactDesc")
+#TODO(fpkerckh) : generic naming & format for MD? 
+metadata <- as.data.frame(metadata.tibble) #to avoid warnings/errors with rownames
+if(is.numeric(metadata$SampleName)) #check for fully numeric sample names
+{
+  metadata$SampleName <- paste(dataname,metadata$SampleName,sep="")
+}
+rownames(metadata) <- metadata$SampleName
+metadata.smpdat <- sample_data(metadata)
+colnames(shared.t.ns) <- plyr::mapvalues(colnames(shared.t.ns),
+                                       from=as.character(metadata$Code),
+                                       to=as.character(metadata$SampleName)) #rename
+#the part above maps sample names to codes that were used for sequencing at LGC, regardless of the order in the shared file
+
+
+
+#### phyloseq constructors ####
+otumat.ns <- as.matrix(shared.t.ns)
+taxmat.ns <- as.matrix(taxonomy.np.ns)
+OTU       <- otu_table(otumat.ns,taxa_are_rows = TRUE)
+TAX       <- tax_table(taxmat.ns)
+physeqobj <- phyloseq(OTU,TAX)
+physeqobj.meta <- merge_phyloseq(physeqobj,metadata.smpdat)
+
+#### filtering according to WNWN ####
+## prevalence = (fraction of samples in which an OTU is observed minimum 1 time)
+minobs=1
+prevalence <- apply(as.matrix(shared.t.ns),1,function(x,minobs){sum(x>=minobs)},minobs)/ncol(shared.t.ns)
+prevalencefilter <- prevalence>0.05
+sharedminsingletonwnwn <- shared.t.ns[prevalencefilter,]
+##Read counts should exceed 0.5 times the number of samples
+sharedfilteredwnwn <- sharedminsingletonwnwn[rowSums(sharedminsingletonwnwn)>0.5*ncol(sharedminsingletonwnwn),]
+# deseq normalise ==> very dependent upon design
+metadata$factor1 <- factor(metadata$Factor1)
+metadata$factor2 <- factor(metadata$Factor2)
+deseqdata <- as.matrix(sharedfilteredwnwn +1)
+# deseqdata <- DESeqDataSetFromMatrix(deseqdata,colData=metadata,design= ~ factor1 + factor2)
+# deseqdata <- estimateSizeFactors(deseqdata)
+# sharedfiltereddeseq <- counts(deseqdata,normalized=TRUE)
+# deseqdata <- estimateDispersions(deseqdata,fitType="local")
+# sharedfiltereddeseqvartransf <- varianceStabilizingTransformation(deseqdata, blind = FALSE)
+# sharedfiltereddeseqvartransfmatrix <- assay(sharedfiltereddeseqvartransf)
+# wnwndeseqvartransf <- getVarianceStabilizedData(deseqdata)
+# jaccard_deseq <- vegdist(t(sharedfiltereddeseq),method="jaccard",binary="FALSE") # not interpretable on negative counts!
+
+# set global chunk options: 
+library(knitr)
+opts_chunk$set(cache=TRUE, autodep = TRUE)
+#dep_auto()
+#in this way for every chunck if any previous chunck is changed, it will be recompiled
+#given that only generally the first chunck should change, on first run the cache will be 
+#rebuilt by default but subsequent downstream chenges should be fine
+```
+
+Initially, all forward and reverse reads were assembled to a total of `r nrow(ini)` contigs. Contigs with very divergent lengths (outside of the 2.5%-97.5% quantiles) were removed (see figure below). Since these contig lengths either exceed the expected amplicon length or lie gravely below it, we can assume that they are erroneous. Additionally, all sequences with any ambiguous base calls were removed.
+
+```{r initiaseqlengthdistri,cache=TRUE,echo=FALSE,warning=FALSE,fig.cap="Histogram of contig sequence length distribution",dependson=1}
+hist(csum$nbases,col = "lightblue",main="",xlab="Number of nucleotides")
+box()
+```
+
+This led to a reduction to `r percent(nrow(firsttrimsum)/nrow(csum))` of the original read count. This also shows a more "focussed" sequence length distribution after filtering in the figure below. Next, the number of *unique* sequences was assessed on these pre-screened contigs leading to `r nrow(uniquesum)` (of `r sum(uniquesum$numSeqs)`). 
+
+```{r firstscreenseqlengthdistri,cache=TRUE,echo=FALSE,warning=FALSE,fig.cap="Histogram of sequence length distribution after first screening",dependson=1}
+hist(firsttrimsum$nbases,col = "lightblue",main="",xlab="Number of nucleotides")
+box()
+```
+
+Next, sequences were aligned to the mothur-reconstructed SILVA Seed alignment (v`r silvadb`). All sequences falling outside of the alignment space (position `r  as.character(as.numeric(median(uniquesum$start)))` to `r as.character(as.numeric(median(uniquesum$end)))`) and with more homopolymers longer than `r max(postalnsum$polymer)` consecutive nucleotides (i.e. maximum of the alignment database), after which the alignments were filtered to remove empty columns and again only unique sequences were retained.
+
+```{r postalnlengthdistri,cache=TRUE,echo=FALSE,warning=FALSE,fig.cap="Histogram of sequence length distribution after alignment",dependson=1}
+hist(postalnsum$nbases,col = "lightblue",main="",xlab="Number of nucleotides")
+box()
+```
+
+Next, sequences were pre-clustered together within a distance of 1 nucleotide per 100 nucleotides, to increase compuational efficiency. This resulted in `r nrow(preclussum)` unique sequences (`r sum(preclussum$numSeqs)` total sequences).These cleaned-up and preclustered sequences were checked for Chimera's (using Uchime). Afterwards, we classified the sequences using SILVA release `r silvadb` and a naive Bayesian classifier (Wang's algorithm). All sequences that were classified as Eukaryota, Archaea (LGC primers are not supposed to pick up Archaea), Chloroplasts and Mitochondria were removed. Also if sequences could not be classified at all (even at (super)Kingdom level) they were removed. This resulted in `r nrow(postuchimeclasssum)` unique sequences (`r sum(postuchimeclasssum$numSeqs)` total sequences), meaning that `r  percent(1-sum(postuchimeclasssum$numSeqs)/sum(preclussum$numSeqs))` of the sequences after the last cleaning step were either chimeric or not classified as Bacteria. If we have an overview of the data losses during pre-processing we can observe that most of the losses occur at initial trimming (mainly due to ambiguous base calls).
+
+```{r stepwiseseqremoval,cache=FALSE,echo=FALSE,warning=FALSE,fig.cap="Barplot of sequences retained at each step",warning=FALSE,message=FALSE,dependson=1}
+countdfprepr <- data.frame(uniqueseqs=c(nrow(csum),nrow(firsttrimsum),
+                                        nrow(uniquesum),nrow(postalnsum),
+                                        nrow(preclussum),
+                                        nrow(postuchimeclasssum)),
+                           totalseqs=c(nrow(csum),nrow(firsttrimsum),
+                                       sum(uniquesum$numSeqs),
+                                       sum(postalnsum$numSeqs),
+                                       sum(postalnsum$numSeqs),
+                                       sum(postuchimeclasssum$numSeqs)),
+                           step=c("Contigs","Initial trim",
+                                  "Unique","Alignment",
+                                  "Precluster","UChime"))
+countdfprepr.m <- melt(countdfprepr)
+p <- ggplot(aes(x=step,y=value,fill=variable),
+            data=countdfprepr.m) +
+      geom_bar(stat="identity",position="dodge") +
+      xlab("Nucleotide") + 
+      ylab("Number of nucleotides") + theme_bw() +
+      scale_fill_discrete(labels=c("Unique",
+                                   "Total"),
+                          name="") + 
+      scale_x_discrete(limits=c("Contigs",
+                                "Initial trim",
+                                "Unique",
+                                "Alignment",
+                                "Precluster",
+                                "UChime")) +
+      theme(legend.title=element_blank())
+p
+
+openxlsx::addWorksheet(wb,sheetName = "SequenceCountsThroughPipe")
+openxlsx::writeData(wb,sheet="SequenceCountsThroughPipe",x=countdfprepr.m)
+openxlsx::saveWorkbook(wb,file="Results.xlsx",overwrite=TRUE)
+```
+
+Finally, OTU's were clustered with an average linkage and at the 97% sequence 
+identity. This led to an initial OTU count of `r nrow(shared.t)`. After removing
+OTUs with only a single read (likely errors) we retained `r nrow(shared.t.ns)` 
+OTUs. The final amount of reads is given in the table below.
+
+```{r groupcounts, cache=TRUE, echo=FALSE, results="asis",dependson=1}
+groupcounts <- data.frame(Reads = sort(colSums(shared.t.ns),
+                                       decreasing=TRUE))
+kable(groupcounts,
+      caption = "Number of reads for all groups after removing singletons")
+
+openxlsx::addWorksheet(wb,sheetName = "groupcounts")
+openxlsx::writeData(wb,sheet="groupcounts",x=groupcounts,rowNames = TRUE)
+openxlsx::saveWorkbook(wb,file="Results.xlsx",overwrite=TRUE)
+```
+
+As an aditional check, we verify if the sequence read count is very different 
+among the different treatment groups. If this is the case, this is an indication
+that extra care must be taken in downstream analyses that try to perform 
+hypothesis testing.
+
+```{r groupcountsplot, echo=FALSE,fig.cap="Comparison of library sizes among different factors", dependson=1, warning=FALSE, message=FALSE}
+groupcountdf <- data.frame(groupcounts,samplename=rownames(groupcounts))
+metadatadf <- data.frame(metadata,samplename=rownames(metadata))
+countsdfplot <- dplyr::full_join(groupcountdf,metadatadf,by="samplename")
+countsdfplot$Factor1 <- as.factor(countsdfplot$Factor1)
+countsdfplot$Factor2 <- as.factor(countsdfplot$Factor2)
+gglibsize <- ggplot(countsdfplot,aes(x=Factor1,y=Reads,fill=Factor1))
+gglibsize + geom_boxplot() + facet_grid(~Factor2,drop=TRUE) + 
+  theme_bw() +
+  theme(axis.title.x = element_blank(),axis.text.x = element_blank()) +
+  scale_fill_discrete(name=factdescs$Desc[1])+
+  ggtitle(paste("Library size by",factdescs$Desc[1],"and",factdescs$Desc[2]))
+  
+```
+
+
+
+## Classification
+```{r classificationstackedbar,fig.cap=c("Relative abundance of top 8 OTUs at genus level with SILVA 128 classification","Relative abundance of top 8 OTUs at genus level with SILVA 128 classification with viridis colors","Relative abundance of top 8 OTUs at family level with SILVA 128 classification","Relative abundance of top 8 OTUs at family level with SILVA 128 classification with viridis colors","Relative abundance of top 8 OTUs at order level with SILVA 128 classification","Relative abundance of top 8 OTUs at order level with SILVA 128 classification with viridis colors","Relative abundance of top 8 OTUs at phylum level with SILVA 128 classification","Relative abundance of top 8 OTUs at phylum level with SILVA 128 classification with viridis colors"),warning=TRUE,message=TRUE,echo=FALSE,cache=TRUE,dependson=1}
+#TODO(fpkerckh) : make it possible to increase n 
+barplot.genus <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                        topn=8,taxlevel="Genus",shared.abs=TRUE,
+                                        tax.prob=FALSE,samples=dataname,
+                                        plot=TRUE)
+
+cat('\n\n') #from https://groups.google.com/forum/#!topic/knitr/MJVLiVyGCro
+barplot.genusviridis <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                        topn=8,taxlevel="Genus",shared.abs=TRUE,
+                                        tax.prob=FALSE,samples=dataname, viridfill = TRUE,
+                                        plot=TRUE)
+
+highqualgraphR(barplot.genus$ggplotobj,filename = "Barplot_genus",
+               extension = c("png","tiff"),pointsize=12)
+highqualgraphR(barplot.genusviridis$ggplotobj,filename = "Barplot_genus_viridis",
+               extension = c("png","tiff"),pointsize=12)
+genustopexp <- barplot.genus$ggplotdf  %>% dplyr::select(-Var2o)  %>% tidyr::spread(Var2,value)
+write.xlsx2(x = genustopexp, file = "Results.xlsx",
+            sheetName = "genusTop", append = TRUE)
+#here you can order the samples in an order which you consider appropriate, using +scale_x_discrete: e.g.:
+#barplot.genus$ggplotobj + scale_x_discrete(limits=c("T_Inoculum","M_OLR5_Start","T_OLR5_Start",
+                                                          #"M_OLR5_End","T_OLR5_End","M_OLR10_End","T_OLR10_End",
+#                                                          "M_OLR10_Biofilm","T_OLR10_Biofilm")) 
+cat('\n\n')
+barplot.family <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                               topn=8,taxlevel="Familia",shared.abs=TRUE,
+                                               tax.prob=FALSE,samples=dataname,plot=TRUE)
+
+cat('\n\n')
+barplot.famviridis <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                               topn=8,taxlevel="Familia",shared.abs=TRUE,
+                                               tax.prob=FALSE,samples=dataname,viridfill = TRUE,
+                                             plot=TRUE)
+
+
+familytopexp <- barplot.family$ggplotdf  %>% dplyr::select(-Var2o)  %>% tidyr::spread(Var2,value)
+write.xlsx2(x = familytopexp, file = "Results.xlsx",
+            sheetName = "familyTop", append = TRUE)
+highqualgraphR(barplot.family$ggplotobj,filename = "Barplot_family",
+               extension = c("png","tiff"),pointsize=12)
+highqualgraphR(barplot.famviridis$ggplotobj,filename = "Barplot_family_viridis",
+               extension = c("png","tiff"),pointsize=12)
+cat('\n\n')
+barplot.ordo <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                           topn=8,taxlevel="Ordo",shared.abs=TRUE,
+                                           tax.prob=FALSE,samples=dataname,plot=TRUE)
+cat('\n\n')
+barplot.ordviridis <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                           topn=8,taxlevel="Ordo",shared.abs=TRUE,
+                                           tax.prob=FALSE,samples=dataname, viridfill=TRUE,
+                                           plot=TRUE)
+
+highqualgraphR(barplot.ordo$ggplotobj,filename = "Barplot_ordo",
+               extension = c("png","tiff"))
+highqualgraphR(barplot.ordviridis$ggplotobj,filename = "Barplot_ordo_viridis",
+               extension = c("png","tiff"),pointsize=12)
+ordotopexp <- barplot.ordo$ggplotdf  %>% dplyr::select(-Var2o)  %>% tidyr::spread(Var2,value)
+write.xlsx2(x = ordotopexp, file = "Results.xlsx",
+            sheetName = "ordoTop", append = TRUE)
+
+cat('\n\n')
+barplot.phylum <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                           topn=8,taxlevel="Phylum",shared.abs=TRUE,
+                                           tax.prob=FALSE,samples=dataname,plot=TRUE)
+cat('\n\n')
+barplot.phylumviridis <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+                                           topn=8,taxlevel="Phylum",shared.abs=TRUE,
+                                           tax.prob=FALSE,samples=dataname, viridfill = TRUE,
+                                           plot=TRUE)
+highqualgraphR(barplot.phylum$ggplotobj,filename = "Barplot_phylum",
+               extension = c("png","tiff"))
+highqualgraphR(barplot.phylumviridis$ggplotobj,filename = "Barplot_phylum_viridis",
+               extension = c("png","tiff"),pointsize=12)
+phylumtopexp <- barplot.phylum$ggplotdf  %>% dplyr::select(-Var2o)  %>% tidyr::spread(Var2,value)
+write.xlsx2(x = phylumtopexp, file = "Results.xlsx",
+            sheetName = "phylumTop", append = TRUE)
+
+```
+
+Alternative stacked bar graphs were generated with phyloseq and are displayed below.
+
+```{r phyloseqbarplots,echo=FALSE,warning=FALSE,fig.cap=c("Read counts of top 12 OTUs at genus level with SILVA 128 classification","Read counts of top 12 OTUs at genus level with SILVA 128 classification and viridis fill","Read counts of top 12 OTUs at family level with SILVA 128 classification","Absolute counts of top 12 OTUs at order level with RDP (rel. 16) classification","Relative counts of top 12 OTUs at genus level with RDP (rel. 16) classification","Relative counts of top 12 OTUs at family level with RDP (rel. 16) classification","Relative counts of top 12 OTUs at order level with RDP (rel. 14) classification"),dependson=1}
+TopNOTUs <- names(sort(taxa_sums(physeqobj), TRUE)[1:12])
+physeqobj12  <- prune_taxa(TopNOTUs, physeqobj)
+relabsphyseq <- transform_sample_counts(physeqobj, function(x) x/sum(x))
+TopNOTUs.relab <- names(sort(taxa_sums(relabsphyseq), TRUE)[1:12])
+physeqobj12.relab  <- prune_taxa(TopNOTUs.relab, relabsphyseq)
+
+phygen <- plot_bar(physeqobj12, fill="Genus")
+phygen + labs(title=paste("Taxonomic distribution ",dataname," samples",sep="")) +
+         scale_x_discrete(limits=c(metadata$SampleName))
+phygenp <- phygen + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""))+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phygenp,filename = "Barplot_genus_phyloseq_reads",
+               extension = c("png","tiff"),pointsize = 12)
+cat('\n\n')
+phygen + scale_fill_viridis(discrete = TRUE)
+phygenvir <- phygen + scale_fill_viridis(discrete = TRUE)
+highqualgraphR(phygenvir,filename = "Barplot_genus_phyloseq_reads_viridis",
+               extension = c("png","tiff"),pointsize = 12)
+
+cat('\n\n')
+phyfam <- plot_bar(physeqobj12, fill="Familia")
+phyfam + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""))+
+         scale_x_discrete(limits=c(metadata$SampleName))
+phyfamp <- phyfam + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""))+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phyfamp,filename = "Barplot_family_phyloseq_absolute",extension = c("png"))
+
+phyord <- plot_bar(physeqobj12, fill="Ordo")
+phyord + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""))+
+         scale_x_discrete(limits=c(metadata$SampleName))
+phyordp <- phyord + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""))+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phyordp,filename = "Barplot_ordo_phyloseq_absolute",extension = c("png"))
+
+phygen.rel <- plot_bar(physeqobj12.relab, fill="Genus")
+phygen.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                  y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+phygenp.rel <- phygen.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                                 y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phygenp.rel,filename = "Barplot_genus_phyloseq_relative",extension = c("png"))
+
+
+phyfam.rel <- plot_bar(physeqobj12.relab, fill="Familia")
+phyfam.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                  y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+phyfamp.rel <- phyfam.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                  y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phyfamp.rel,filename = "Barplot_family_phyloseq_relative",extension = c("png"))
+
+phyord.rel <- plot_bar(physeqobj12.relab, fill="Ordo")
+phyord.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                  y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+phyordp.rel <- phyord.rel + labs(title=paste("Taxonomic distribution ",dataname," samples",sep=""),
+                  y="Relative abundance")+
+         scale_x_discrete(limits=c(metadata$SampleName))
+highqualgraphR(phyordp.rel,filename = "Barplot_ordo_phyloseq_relative",extension = c("png"))
+```
+
+Ultimately, a clustered heatmap of the top 24 OTUs is drawn below, to give an idea of the composition of the community
+
+```{r heatmaptax, echo=FALSE, fig.cap="Heatmap of top 24 OTUs relative abundance", warning=FALSE, cache=TRUE,dependson=1}
+relabsphyseq <- transform_sample_counts(physeqobj, function(x) x/sum(x))
+Top24OTUs.relab <- names(sort(taxa_sums(relabsphyseq), TRUE)[1:24])
+physeqobj24.relab  <- prune_taxa(Top24OTUs.relab, relabsphyseq)
+relab24mat <- as.matrix(otu_table(physeqobj24.relab))
+rownames(relab24mat) <- as.character(as.data.frame(tax_table(physeqobj24.relab))$Genus)
+my_palette <- colorRampPalette(c("black","green" ,"red"))(n = 409)
+# this colors can be selected from a hexadecimal color picker
+# e.g. https://www.google.be/search?hl=en&q=hex+color+picker&gws_rd=ssl
+
+#heatmap.2(relab24mat,col=brewer.pal(9,name="Reds"))
+
+col_breaks = c(seq(0,0.050,length=200),seq(0.051,0.10,length=100),
+               seq(0.11,0.15,length=50),seq(0.151,0.20,length=50),
+               seq(0.21,max(relab24mat),length=10))
+
+heatmap.2(relab24mat, main = "Genus level heatmap",
+          notecol="black", density.info="none",
+          trace="none", margins =c(10,10), col=my_palette, 
+          dendrogram="column", breaks=col_breaks,
+          lmat=rbind(c(3,4),c(1,2)),lwi = c(3,1),
+          Rowv = FALSE, Colv = TRUE)
+```
+Furthermore, some more advanced heatmaps were drawn to get a clear view on the diversity.
+```{r heatmaptaxphylo100, echo=FALSE, fig.cap="Heatmap of top 100 OTUs relative abundance with NMDS based clustering using Jaccard distances", warning=FALSE, cache=TRUE,dependson=1}
+physeqobj.meta.subs <- prune_taxa(names(sort(taxa_sums(physeqobj.meta),
+                                             TRUE)[1:100]),
+                                  physeqobj.meta)
+plot_heatmap(physeqobj.meta.subs, sample.label="SampleName",
+             taxa.label="Genus",method = "NMDS",distance = "jaccard",
+             low="#FFFFCC", high="#000033", na.value="white",trans = log_trans(10))
+```
+To enhance interpretability we additionally tried to add colorbars to the clustered heatmaps.
+```{r heatmapclust, echo=FALSE, fig.cap="Heatmap of top 100 OTUs relative abundance with NMDS based clustering using Jaccard distances", warning=FALSE, cache=TRUE,dependson=1}
+topn <- 20
+wnwnsh <- sharedfilteredwnwn
+wnwnsh.prop <- decostand(wnwnsh,method = "total",MARGIN=2)
+shns <- shared.t.ns
+shns.prop <- decostand(shns,method = "total",MARGIN=2)
+shns.log <- decostand(shns,method = "log",logbase=10)
+shns.cs <- shns.prop*as.numeric(quantile(colSums(shared.t.ns),.75)) #other quantile then max see: #boxplot(colSums(shared.t.ns))
+wnwnsh.log <- decostand(wnwnsh,method = "log",logbase=10)
+
+metadata.colsidecols <- metadata %>% dplyr::select(c(Factor1,Factor2)) %>%
+                                      transmute(MAP=Factor1,
+                                                Day=as.factor(Factor2))
+rownames(metadata.colsidecols) <- metadata$SampleName
+md.colsidecols.ordered <- metadata.colsidecols[colnames(wnwnsh),]
+
+wnwnsh.top <- wnwnsh %>% dplyr::mutate(otu=rownames(wnwnsh)) %>% 
+                                     top_n(topn,rowSums(wnwnsh[1:(ncol(wnwnsh)-1)]))
+rownames(wnwnsh.top) <- wnwnsh.top$otu
+wnwnsh.top <- wnwnsh.top %>% dplyr::select(-c(otu))
+wnwnsh.top.clust <- hclust(vegdist(t(wnwnsh.top),"jaccard",binary = FALSE),method="ward.D2")
+
+NMF::aheatmap(wnwnsh.top,border_color="white",Rowv=NA,Colv=wnwnsh.top.clust$order,
+              annCol=md.colsidecols.ordered, main="WNWN-filtered abundance-based jaccard Ward D2")
+
+wnwnsh.prop.top <- wnwnsh.prop %>% dplyr::mutate(otu=rownames(wnwnsh.prop)) %>% 
+                                     top_n(topn,rowSums(wnwnsh.prop[1:(ncol(wnwnsh.prop)-1)]))
+rownames(wnwnsh.prop.top) <- wnwnsh.prop.top$otu
+wnwnsh.prop.top <- wnwnsh.prop.top %>% dplyr::select(-c(otu))
+wnwnsh.prop.top.clust <- hclust(vegdist(t(wnwnsh.prop.top),"jaccard",binary = FALSE),method="ward.D2")
+
+NMF::aheatmap(wnwnsh.prop.top,border_color="white",Rowv=NA,Colv=wnwnsh.prop.top.clust$order,
+              annCol=md.colsidecols.ordered,
+              main="WNWN-filtered abundance-based jaccard Ward D2 relative abundances")
+
+
+
+```
+
+
+# Alpha diversity
+To investigate how sensitive the different diversity estimators were to sampling effort, collector curves are drawn below. Generally, a 95% confidence interval on the estimates at each sampling depth is displayed, unless they were too cluttered and messed up the whole plot (in which case the estimator is not stable at all and should not be used for further analysis). Below we show the collector curves for the dataset without singletons (although it is important to understand that only singletons in the whole dataset were removed rather than sample singletons, as some estimators rely on doublets and singletons).
+
+## Richness estimators
+
+```{r collector curves richness,echo=FALSE,fig.cap=c("Chao (1984) lower bound richness estimator collector curve","ACE-1 richness estimator (Chao & Lee 1992)"),warning=FALSE, cache=TRUE, dependson=1}
+lrgst <- rownames(groupcounts)[1] #sample with most reads
+grps <- names(sort(colSums(shared.t),decreasing = TRUE)) #sample names
+#cornames <- plyr::mapvalues(grps,from=as.character(metadata$Code),to=as.character(metadata$SampleName))
+colcurveg <- function(fnpref,groups,fnpost,errorbars=FALSE,printing=FALSE)
+{
+  #function to process mothur generated alpha-diversity
+  #INPUT
+  #fnpref: file location
+  #groups: (ordered) names of the samples
+  #fnpost: name of calculator used
+  #errorbars: whether errorbars should be plotted or not. 
+  #TODO: consistency check for errorbar data availability
+  #printing: logical for printing the plot
+  #output: plot and underlying data frame
+  calcdfcomplete<-data.frame()
+  for(i in 1:length(groups))
+  {
+    j<-groups[i]
+    tmpsmp<-read.table(paste(fnpref,j,".",fnpost,sep=""),header=TRUE)
+    repcount<-nrow(tmpsmp)
+    calcdfcomplete.tmp <- cbind(tmpsmp,rep(j,repcount))
+    calcdfcomplete <- rbind(calcdfcomplete,calcdfcomplete.tmp)
+  }
+  names(calcdfcomplete)[ncol(calcdfcomplete)]<-"Sample"
+  calcgg <- ggplot(aes(x=numsampled,y=X0.03,color=Sample),data=calcdfcomplete) + 
+            geom_line() + ylab(paste(fnpost," index",sep=""))
+  if(errorbars==TRUE)
+  {
+    calcggerr <- calcgg + geom_errorbar(aes(ymin=lci,ymax=hci))
+    if(printing==TRUE){print(calcggerr)}
+    reslist <- list(plotgg=calcggerr,underlyingdf=calcdfcomplete)
+  }else{
+    if(printing==TRUE){print(calcgg)}
+    reslist <- list(plotgg=calcgg,underlyingdf=calcdfcomplete)
+  }
+  
+  return(reslist)
+}
+#### SPECIES calculator #####
+set.seed(456789) #set RNG pseudorandom number
+expshared <- shared.t.ns
+calcspecies <- function(x)
+{
+  #x are the counts of an individual sample
+  #some consistency checks
+  if(length(x!=0)>10) # the sample has to have at least 10 species
+  {
+    if(sum(x[which(x!=0)])>length(x[which(x!=0)])) #there has to be at least some variation and not just all 0 counts
+    {
+    inputdf <- data.frame(j=as.numeric(as.character(rownames(as.matrix(table(x))))),
+                          n_j=as.vector(table(x)))
+    inputdf <- subset(inputdf,subset=inputdf$j!=0) 
+    #estimators don't work with 0 observations
+    chaores <- chao1984(inputdf)
+    suppressWarnings(chaobung <- SPECIES::ChaoBunge(inputdf,t=10))
+    suppressWarnings(ace1res <- SPECIES::ChaoLee1992(inputdf,t=10,method="ACE-1"))
+    #pcgres <- SPECIES::pcg(inputdf) #too computationally intensive , overparametrized
+    #unplmeres <- SPECIES::unpmle(inputdf,C=1,b=20,seed=456789,dis=0) #quite computationally intensive, certainly for larger datasets
+    #pnplmeres <- SPECIES::pnpmle(inputdf,C=1,b=20,seed=456789,dis=0) #quite computationally intensive, certainly for larger datasets
+    #jacknres <- invisible(suppressWarnings(suppressMessages(SPECIES::jackknife(inputdf)))) #could not suppress output
+    resdf <- data.frame(Methods=c("Chao1984","ChaoBunge2002","ACE-1"),
+                        Nhat=c(chaores$Nhat,chaobung$Nhat,ace1res$Nhat),
+                        SE_low=c(chaores$Nhat-chaores$SE,chaobung$Nhat-chaobung$SE,ace1res$Nhat-ace1res$SE),
+                        SE_high=c(chaores$Nhat+chaores$SE,chaobung$Nhat+chaobung$SE,ace1res$Nhat+ace1res$SE),
+                        CI_lb=c(chaores$CI[1],chaobung$CI[1],ace1res$CI[1]),
+                        CI_ub=c(chaores$CI[2],chaobung$CI[2],ace1res$CI[2]))
+    }else{
+      resdf <- data.frame(Methods=c("Chao1984","ChaoBunge2002","ACE-1"),
+                        Nhat=c(NA,NA,NA),
+                        SE_low=c(NA,NA,NA),
+                        SE_high=c(NA,NA,NA),
+                        CI_lb=c(NA,NA,NA),
+                        CI_ub=c(NA,NA,NA))
+    }
+    
+  }else{
+    resdf <- data.frame(Methods=c("Chao1984","ChaoBunge2002","ACE-1"),
+                        Nhat=c(NA,NA,NA),
+                        SE_low=c(NA,NA,NA),
+                        SE_high=c(NA,NA,NA),
+                        CI_lb=c(NA,NA,NA),
+                        CI_ub=c(NA,NA,NA))
+  }
+  return(resdf)
+}
+specres <- list()
+for(i in 1:length(seq(100,max(colSums(expshared)),by=100))) 
+  #maybe use another number than 100 depending upon dataset size
+{
+  sampz <- seq(100,max(colSums(expshared)),by=100)[i]
+  expsubs <- expshared[,which(colSums(expshared)>=sampz)]
+  rareset <- as.data.frame(t(rrarefy(t(expsubs),sampz)))
+  if(is.null(dim(expsubs))) #only if only one sample left with certain depth
+  {
+    colnames(rareset) <- names(which(colSums(expshared)>=sampz))
+  }
+  speclist <- mclapply(rareset,calcspecies,mc.cores=12, mc.cleanup = TRUE)
+  specres[[i]] <- speclist
+}
+plotlist <- list()
+for(i in names(specres[[1]]))
+{
+  smpdf <- ldply(specres,function(x)eval(parse(text=paste("x$`",i,"`",sep=""))))
+  smplist <- lapply(specres,function(x)eval(parse(text=paste("x$`",i,"`",sep=""))))
+  subscount <- rep(seq(100,sum(eval(parse(text = paste("expshared$`",i,"`",sep="")))),by=100),each=3)
+  smpname <- i
+  plotdf <- data.frame(smpdf,sampsize=subscount,samplename=rep(smpname,nrow(smpdf)))
+  plotlist[[i]]<-plotdf
+}
+# TODO: implement this at a later stage, make sure that the df stores the standard errors too
+plotlistdf <- data.frame(plotlist[[1]])
+for(i in 2:length(plotlist))
+{
+  plotlistdf <- rbind(plotlistdf,plotlist[[i]])
+}
+
+chao84plotdata <- plotlistdf %>%  dplyr::filter(Methods=="Chao1984")
+#chao84plotdata$samplename <- mapvalues(chao84plotdata$samplename,
+#                                       from=levels(chao84plotdata$samplename),
+#                                       to=cornames)
+chaobungeplotdata <- plotlistdf %>%  dplyr::filter(Methods=="ChaoBunge2002")
+#chaobungeplotdata$samplename <- mapvalues(chaobungeplotdata$samplename,
+#                                       from=levels(chaobungeplotdata$samplename),
+#                                       to=cornames)
+ace1plotdata <- plotlistdf %>% dplyr::filter(Methods=="ACE-1")
+#ace1plotdata$samplename <- mapvalues(ace1plotdata$samplename,
+#                                       from=levels(ace1plotdata$samplename),
+#                                       to=cornames)
+
+c84gg <- ggplot(aes(x=sampsize,y=Nhat,color=samplename),data=chao84plotdata) +
+          geom_point() + geom_errorbar(aes(ymin=CI_lb,ymax=CI_ub)) + 
+  xlab("Number of reads sampled") + ylab(bquote(hat(N)[Chao~1984~lower~bound~estimator]))
+c84gg
+highqualgraphR(c84gg,filename = "Chao1984_collectorcurve",extension = c("png"))
+# cbgg <- ggplot(aes(x=sampsize,y=Nhat,color=samplename),data=chaobungeplotdata) +
+#           geom_point() + geom_errorbar(aes(ymin=CI_lb,ymax=CI_ub)) + 
+#   xlab("Number of reads sampled") + ylab(bquote(hat(N)[Poisson~Gama~model~coverage~duplication~estimator]))
+#not stable at all
+a1gg <- ggplot(aes(x=sampsize,y=Nhat,color=samplename),data=ace1plotdata) +
+          geom_point() + geom_errorbar(aes(ymin=CI_lb,ymax=CI_ub)) + 
+  xlab("Number of reads sampled") + ylab(bquote(hat(N)[ACE~1~estimator]))
+a1gg
+highqualgraphR(a1gg,filename = "ACE1_collectorcurve",extension = c("png"))
+```
+
+Below we list the table with several richness estimators (per sample) and their confidence intervals.
+
+```{r richnessRtables, echo=FALSE,results='asis',warning=FALSE,cache=TRUE,dependson=1}
+fullsetrichcalc <- mclapply(shared.t.ns,calcspecies,mc.cores = 12,mc.cleanup = TRUE)
+tablrichdf <- ldply(fullsetrichcalc,function(x)x)
+names(tablrichdf)[1]<-"Sample name"
+kable(tablrichdf,caption = "Richness estimators with standard errors and 95\\% confidence interval")
+write.csv(tablrichdf,"Richness_estimated.csv")
+```
+
+
+##Diversity estimators
+
+```{r diversity vegan,echo=FALSE,warning=FALSE,cache=TRUE,fig.cap=c("Shannon entropy collector curve","Simpson diversity index collector curve","Inverse Simpson diversity index collector curve","Pielou evenness index collector curve"),dependson=1}
+csumssto <- colSums(shared.t.ns)
+vegplotsto <- data.frame(numSampled=rep(1,ncol(shared.t.ns)),Sample=colnames(shared.t.ns),
+                         Shannon=0,Invsimpson=1,Simpson=0,Pielou=0)
+for(i in seq(100,max(colSums(shared.t.ns)),by=round(max(colSums(shared.t.ns))/1000L)))
+{
+  colselsto <- csumssto >= i
+  ipraresto <- shared.t.ns[,colselsto]
+  raredsto <- rrarefy(t(ipraresto),sample=i)
+  shansto <- diversity(raredsto,index="shannon")
+  simpsto <- diversity(raredsto,index="simpson")
+  invsimpsto <- diversity(raredsto,index="invsimpson")
+  pielousto <- diversity(raredsto,index="shannon")/specnumber(raredsto)
+  if(is.null(colnames(ipraresto)))
+  {
+    ipraresto<-data.frame(col1<-ipraresto)
+    colnames(ipraresto)<-names(csumssto[csumssto==max(csumssto)])
+  }
+  vegplotsto <- rbind(vegplotsto,data.frame(numSampled=i,Sample=colnames(ipraresto),
+                                            Shannon=as.vector(shansto),
+                                            Invsimpson=as.vector(invsimpsto),
+                                            Simpson=as.vector(simpsto),
+                                            Pielou=pielousto))
+}
+
+
+# vegplotsto$Sample <- mapvalues(vegplotsto$Sample,
+#                                from=levels(vegplotsto$Sample),
+#                                to=sub("(...).*","\\1",levels(vegplotsto$Sample)))
+shanplotveg <- ggplot(aes(x=numSampled,y=Shannon,color=Sample),data=vegplotsto) + geom_point(alpha=0.6)
+shanplotveg + geom_line() + ylab("Shannon diversity index (H)") + xlab("Reads sampled")
+spexp <- shanplotveg + geom_line() + ylab("Shannon diversity index (H)") + xlab("Reads sampled")
+highqualgraphR(spexp,filename = "Shannon_collector",extension = c("png"))
+simpplotveg <- ggplot(aes(x=numSampled,y=Simpson,color=Sample),data=vegplotsto) + geom_point(alpha=0.6)
+simpplotveg + geom_line() + ylab("Simpson diversity index (1-D)") + xlab("Reads sampled")
+sipexp <- simpplotveg + geom_line() + ylab("Simpson diversity index (1-D)") + xlab("Reads sampled")
+highqualgraphR(sipexp,filename = "Simpson_collector",extension = c("png"))
+invsimpplotveg <- ggplot(aes(x=numSampled,y=Invsimpson,color=Sample),data=vegplotsto) + geom_point(alpha=0.6)
+invsimpplotveg + geom_line() + ylab("Inverse Simpson diversity index (1/D)") + xlab("Reads sampled")
+invsiexp <- invsimpplotveg + geom_line() + ylab("Inverse Simpson diversity index (1/D)") + xlab("Reads sampled")
+highqualgraphR(invsiexp,filename = "Inverse_Simpson_collector",extension = c("png"))
+pielouplotveg <- ggplot(aes(x=numSampled,y=Pielou,color=Sample),data=vegplotsto) + geom_point(alpha=0.6)
+pielouplotveg + geom_line() + ylab("Pielou evenness index (J)") + xlab("Reads sampled")
+pieexp <- pielouplotveg + geom_line() + ylab("Pielou evenness index (J)") + xlab("Reads sampled")
+highqualgraphR(pieexp,filename = "Pielou_collector",extension = c("png"))
+```
+
+The diversity estimators which are stable (i.e. the plots level off) should be considered for further evaluation. Their values on the full dataset (without singletons) are listed in the table below.
+
+
+```{r diversitytables, echo=FALSE,results='asis',warning=FALSE,cache=TRUE,dependson=c(-1,1)}
+vegplotdf <- vegplotsto
+#vegplotdf$Sample <- plyr::mapvalues(vegplotdf$Sample,
+#                                    from = levels(vegplotdf$Sample),
+#                                    names(shared.t.ns))
+vegtable <- vegplotdf  %>%  group_by(Sample)  %>% dplyr::filter(numSampled==max(numSampled)) %>% 
+                dplyr::filter(numSampled!=1) #%>%  arrange(Sample) , leave arranged by numSampled
+#if numSampled == 1 then there was a prob with the sample size < 100 reads
+kable(vegtable,caption="Diversity indices on the full dataset")
+write.csv(vegtable,"Diversity_vegan.csv")
+```
+
+##Rarefaction curves
+
+Although it can be considered part of sequence quality control, we show rarefaction curves here as a measure if sampling was deep enough to cover all observed diversity. After removal of the singletons, the curves were drawn. For appropriate sampling depth, curves should "level off".
+
+```{r rarecurveR,echo=FALSE,fig.cap=c("Rarefaction curve of the dataset without singletons","Rarefaction curve of the raw dataset","Rarefaction curve of the dataset without singletons with indicated subsampling to the lowest experimental sample"),cache=TRUE,warning=FALSE,dependson=1}
+set.seed=12345
+raredfplot <- shared.t.ns
+#colnames(raredfplot)<-sub("(...).*","\\1",colnames(raredfplot))
+
+rarecurve(t(raredfplot),step=round(max(colSums(raredfplot))/1000L),
+          cex=0.4)
+pdf(file = "figure/rarefaction_curve_nosingletons.pdf",paper = "a4r")
+rarecurve(t(raredfplot),step=round(max(colSums(raredfplot))/1000L),
+          cex=0.4)
+invisible(dev.off())
+rarecurve(t(raredfplot),sample=min(colSums(raredfplot)),
+          step=round(max(colSums(raredfplot))/1000L),cex=0.4)
+```
+
+# Beta diversity
+Beta diversity analysis below was performed on proportions rather than using DeSeq or EdgeR variance stabilization, because of the lack of biological replicates in each treatment group (which makes it impossible to properly model the dispersion). However, distance-based ordination was also performed with the Cao index (CYd, Cao et al 1997) on non-scaled data since it can deal with unequal sampling sizes. 
+
+## Basic ordination
+When we consider the NMDS plots based on the Jaccard and Cao dissimilarity metrics it is clear that the ordinations look different, although there's only a very little difference in "stress" and both ordinations have very high R² values. The ordinations were also executed on the dataset without the inoculum, given it's high dissimilarity with the other samples, which dominated the ordination.
+
+```{r ordinations,echo=FALSE,warning=FALSE,fig.width=9,fig.height=9,dependson=c(-1,1), eval=TRUE}
+set.seed(4798)
+shared.relab <- decostand(raredfplot,method="total",MARGIN=2)
+shared.cs <- shared.relab*min(colSums(shared.t.ns))
+disjac <- vegdist(t(shared.relab),method="jaccard")
+disjac.cs <- vegdist(t(shared.cs),method="jaccard")
+discyd <- vegdist(t(raredfplot),method="cao") #can handle different sample sizes
+suppressWarnings(discyd.cs <- vegdist(t(ceiling(shared.cs)),method="cao")) #can handle different sample sizes
+ 
+mdsjac <- metaMDS(disjac,trace=FALSE,try=50,trymax=2000)
+mdsjac.cs <- metaMDS(disjac.cs,trace=FALSE,try=50,trymax=5000)
+mdscyd <- metaMDS(discyd,trace=FALSE,try=50,trymax=5000)
+mdscyd.cs <- metaMDS(discyd.cs,trace=FALSE,try=50,trymax=2000)
+
+
+plot(mdsjac,type="n",display="sites")
+ordipointlabel(mdsjac,display = "sites",add=TRUE)
+colvect<-rep("blue",length(rownames(mdsjac$points)))
+brewset <- brewer.pal(8,"Set2")
+md.mdsjac <- metadata[rownames(mdsjac$points),]
+for(i in 2:nlevels(factor(md.mdsjac$Factor1))){
+  colvect[which(md.mdsjac$Factor1==levels(factor(md.mdsjac$Factor1))[i])]<- brewset[i]
+}
+points(mdsjac,pch=16,col=colvect)
+legend("bottomleft",
+       legend = levels(factor(md.mdsjac$Factor1)),
+       col=c("blue",brewset[2:nlevels(factor(md.mdsjac$Factor1))]),
+       pch = 16)
+
+plot(mdsjac.cs,type="n",display="sites")
+ordipointlabel(mdsjac.cs,display = "sites",add=TRUE)
+colvect<-rep("blue",length(rownames(mdsjac.cs$points)))
+md.mdsjac.cs <- metadata[rownames(mdsjac.cs$points),]
+for(i in 2:nlevels(factor(md.mdsjac.cs$Factor1))){
+  colvect[which(md.mdsjac.cs$Factor1==levels(factor(md.mdsjac.cs$Factor1))[i])]<- brewset[i]
+}
+points(mdsjac.cs,pch=16,col=colvect)
+legend("bottomleft",
+       legend = levels(factor(md.mdsjac.cs$Factor1)),
+       col=c("blue",brewset[2:nlevels(factor(md.mdsjac.cs$Factor1))]),
+       pch = 16)
+
+# plot(mdscyd,type="n",display="sites")
+# ordipointlabel(mdscyd,display = "sites",add=TRUE)
+# colvect<-rep("blue",length(rownames(mdscyd$points)))
+# md.mdscyd <- metadata[rownames(mdscyd$points),]
+# for(i in 2:nlevels(factor(md.mdscyd$Factor1))){
+#   colvect[which(md.mdscyd$Factor1==levels(factor(md.mdscyd$Factor1))[i])]<- brewset[i]
+# }
+# points(mdscyd,pch=16,col=colvect)
+# legend("bottomright",
+#        legend = levels(factor(md.mdscyd$Factor1)),
+#        col=c("blue",brewset[2:nlevels(factor(md.mdscyd$Factor1))]),
+#        pch = 16)
+# 
+# plot(mdscyd.cs,type="n",display="sites")
+# ordipointlabel(mdscyd.cs,display = "sites",add=TRUE)
+# colvect<-rep("blue",length(rownames(mdscyd.cs$points)))
+# colvect[which(metadata$Factor1==levels(factor(metadata$Factor1))[2])]<-"red"
+# colvect[which(metadata$Factor1==levels(factor(metadata$Factor1))[3])]<-"green"
+# points(mdscyd.cs,pch=16,col=colvect)
+# legend("bottomright",legend = levels(factor(metadata$Factor1)),col=c("blue","red","green"),pch = 16)
+# 
+# 
+stressplot(mdsjac,disjac)
+stressplot(mdsjac.cs,disjac.cs)
+# stressplot(mdscyd,discyd)
+# stressplot(mdscyd.cs,discyd.cs)
+# 
+# 
+# pcoajac <- pcoa(disjac,correction="cailliez")
+# biplot(pcoajac,t(shared.relab))
+
+# pcarelab.sel <- rda(t(shared.relab.sel))
+# biplot(pcarelab.sel,type="text",scaling=-1)
+# rdarelab.sel <- rda(t(shared.relab.sel),scale=TRUE)
+# biplot(rdarelab.sel,type="text",scaling=-1)
+# dcarelab.sel <- decorana(t(shared.relab.sel))
+# plot(dcarelab.sel,display="sites",type="text")
+# plot(dcarelab.sel,display="sites",type="text",col="red")
+# sel <- orditorp(dcarelab.sel,display = "species",priority=colSums(t(shared.relab.sel)))
+```
+
+# Hypothesis testing
+
+This part is dependent upon the design and cannot be made generic
+
+
+
+# Session information
+
+This analysis was run using `r sessionInfo()$R.version$version.string` on a `r sessionInfo()$platform` machine. A more detailed overview of the package versions
+can be found below. All input data was generated using Mothur (`r sub("="," ",try(system("mothur -v", intern=TRUE, ignore.stderr = TRUE)[2]))`).
+
+```{r package info,echo=FALSE,results='asis',warning=FALSE}
+
+pander(session_info())
+
+```
+

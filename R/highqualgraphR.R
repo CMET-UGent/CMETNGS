@@ -66,7 +66,6 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
   #     extrafont::loadfonts(device = "postscript",quiet=TRUE)
   #   }
   # }
-  extrafont::font_import()
   extrafont::loadfonts(quiet=TRUE)
   extrafont::loadfonts(device = "postscript",quiet=TRUE)
   #######################################################################

@@ -5,9 +5,9 @@
 \title{ggplot2-based cummulative stacked bargraphs for plotting taxonomy}
 \usage{
 makebargraphrawggplot2(tax, shared, topn = 8, taxlevel = c("Regnum",
-  "Phylum", "Classis", "Ordo", "Familia", "Genus", "Species"), shared.abs = T,
-  tax.prob = F, tresh = 85, samples, viridfill = FALSE, plot = TRUE,
-  ...)
+  "Phylum", "Classis", "Ordo", "Familia", "Genus", "Species"),
+  shared.abs = T, tax.prob = F, tresh = 85, samples,
+  viridfill = FALSE, plot = TRUE, ...)
 }
 \arguments{
 \item{tax}{is a taxonomy file, raw.}
