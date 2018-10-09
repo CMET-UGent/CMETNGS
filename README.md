@@ -7,12 +7,12 @@ R package with some convenience functions for CMETs NGS pipeline
 
 ```
 library(devtools)
-install_github("https://github.ugent.be/LabMETNGS/CMETNGS_package")
+install_github("CMET-UGent/CMETNGS")
 ```
 
 ## Available functions
 
-For more details on a function just call `?functionname`
+For more details on a function call `?functionname`
 
 Function name | Description
 --------------|-------------
@@ -24,6 +24,9 @@ cbindPad | function to combine unequal-length data frames (or vectors) into a da
 gg_color_hue | function to generate ggplot-like color pallettes
 myround | alternative plotting function
 fasta2dataframe | bioconductor-based readout of (mothur formatted) sequences into a dataframe
+KimPalettes | Function to select a discrete color palette as created by Kim De Paepe
+MakeEDABargraphs | create some exploratory stacked bargraphs based upon mothur output files and phyloseq, as created by Tim Lacoere
 df2fasta | bioconductor-based inverse of `fasta2dataframe` (useful in case you did some filtering via fasta2dataframe but need a fasta output for downstream)
 MakeExcelReport | R function that takes absolute (!) paths to a shared, taxonomy and optional otureps fasta and automatically creates an excel file from it.
 myround | more robust rounding function
+

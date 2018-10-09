@@ -15,6 +15,7 @@
 #' @return The underlying dataframe for the plot and the plot (if printing is set to TRUE)
 #' @examples
 #' #TODO
+#' @export
 
 colcurveg <- function(fnpref,groups,fnpost,errorbars=FALSE,printing=FALSE)
 {

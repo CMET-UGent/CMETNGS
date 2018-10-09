@@ -2,7 +2,7 @@ Package: CMETNGS
 Type: Package
 Title: Convenience functions for CMET NGS automated pipeline
 Version: 0.1.0
-Author: F.M. Kerckhof, Kim De Paepe, Ruben Props and Tim Lacoere
+Authors@R: c(person("Frederiek - Maarten","Kerckhof",email="frederiekmaarten.kerckhof@ugent.be",role=c("aut","cre")),person("Kim", "De Paepe", email="kim.depaepe@ugent.be", role="aut"),person("Tim", "Lacoere",  email="tim.lacoere@ugent.be", role="aut"),person("Ruben", "Props", email="ruben.props@ugent.be", role="aut"))
 Maintainer: F.M. Kerckhof <frederiekmaarten.kerckhof@ugent.be>
 Description: Set of functions to aid in visualisation and
     analysis of amplicon NGS data in support of CMETs NGS pipeline.
@@ -34,5 +34,6 @@ Imports:
     magrittr,
     data.table,
     openxlsx
-Date: 2018
+Date: 2018-10-01
 RoxygenNote: 6.1.0
+

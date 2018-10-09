@@ -47,7 +47,8 @@ reptworeps <- MakeExcelReport(shareddataset,taxonomydataset)
 ## Example with otureps
 oturepsdataset <- system.file("extdata","large_otureps.fasta",
                               package="CMETNGS",mustWork=TRUE)
-reptwreps <- MakeExcelReport(shareddataset,taxonomydataset,oturepsdataset, resultfn="ResultsOTUreps.xlsx")
+reptwreps <- MakeExcelReport(shareddataset,taxonomydataset,oturepsdataset,
+ resultfn="ResultsOTUreps.xlsx")
 
 }
 \keyword{excel}
