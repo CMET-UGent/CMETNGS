@@ -4,8 +4,9 @@
 \alias{highqualgraphR}
 \title{Publication-grade export of ggplot2 object}
 \usage{
-highqualgraphR(x, filename, res = 1200, pointsize = 12, embed = FALSE,
-  extension = "pdf", graphicstype = "cairo", colorspace = "cmyk")
+highqualgraphR(x, filename, res = 1200, pointsize = 12,
+  embed = FALSE, extension = "pdf", graphicstype = "cairo",
+  colorspace = "cmyk")
 }
 \arguments{
 \item{x}{a ggplot2 object.}

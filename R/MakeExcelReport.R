@@ -26,7 +26,7 @@
 #' @return A dataframe with the contents of the excel file that was written
 #' @examples
 #' ## Example without otureps
-#'
+#' # make sure library(CMETNGS) is loaded
 #' shareddataset <- system.file("extdata","large_shared_file.shared",
 #'                               package = "CMETNGS",mustWork = TRUE)
 #' taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
