@@ -61,7 +61,7 @@ MakeEDABargraphs <- function(shared,taxonomy,retfphyloseq=TRUE){
                                                          vjust=0.3))
   ggplot2::ggsave("AbsAbunGen.png",plot = AbsAbunGen,device="png")
 
-  RelAbunGen  <- phyloseq::plot_bar(physeqobj25, fill="Genus",
+  RelAbunGen  <- phyloseq::plot_bar(physeqobj25.relab, fill="Genus",
                                    title="Relative  abundance top 25 OTU's") +
                           ggplot2::guides(fill=guide_legend(ncol=1)) +
                           ggplot2::theme(axis.text.x=
@@ -70,7 +70,7 @@ MakeEDABargraphs <- function(shared,taxonomy,retfphyloseq=TRUE){
                                            vjust=0.3))
   ggplot2::ggsave("RelAbunGen.png",plot = RelAbunGen,device="png")
 
-  RelAbunFam  <- phyloseq::plot_bar(physeqobj25, fill="Family",
+  RelAbunFam  <- phyloseq::plot_bar(physeqobj25.relab, fill="Family",
                                     title="Relative abundance top 25 OTU's") +
                             ggplot2::guides(fill=guide_legend(ncol=1)) +
                             ggplot2::theme(axis.text.x=
