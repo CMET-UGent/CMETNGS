@@ -227,7 +227,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   #select top  n OTUs, and remove OTU.count column
   dimord<-dim(data_matrix_tax_final)
   data_matrix_tax_top <- data_matrix_tax_final[1:topn,1:(dimord[2]-1)]
-  data_matrix_tax_other <- data_matrix_tax_final[topn:dimord[1],1:(dimord[2]-1)]
+  data_matrix_tax_other <- data_matrix_tax_final[topn+1:dimord[1],1:(dimord[2]-1)]
   othertax <- data_matrix_tax_other
 
   if(!is.null(dim(othertax)))
