@@ -34,6 +34,5 @@ Imports:
     magrittr,
     data.table,
     openxlsx
-Date: 2018-10-01
-RoxygenNote: 6.1.0
-
+Date: 2019-01-23
+RoxygenNote: 6.1.1

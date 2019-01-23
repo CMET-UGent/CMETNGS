@@ -9,22 +9,22 @@
 #' @param tax is a taxonomy file, raw.
 #' @param shared is a shared (OTU-by-sample) file, filtered per sample group.
 #' @param topn is the top number of taxa selected to display (maximum 11,
-#' default 8)
+#'  default 8)
 #' @param shared.abs is a logical showing wether the shared file already
 #'  consists out of direct Illumina counts, or is really the raw csv from
 #'  Ramiro (default TRUE)
 #' @param taxlevel is either one of  "Regnum", "Phylum", "Classis",
 #'  "Ordo",  "Familia", "Genus"
 #' @param tax.prob shows whether the taxonomy file contains probabilites
-#' 4(default FALSE)
+#'  (default FALSE)
 #' @param tresh is a threshold for the probability taxonomy duplicate matching
 #'  (to be implemented, default 85)
 #' @param samples is an optional string for the title of the generated bargraph
 #'  (e.g. "MOB","OLAND","Fecal samples", defualt empty)
 #' @param viridfill whether or not a discrete viridis fill pallette should be
-#' used (defaults to FALSE)
+#'  used (defaults to FALSE)
 #' @param plot states wether or not to print the plot within the function
-#' (default TRUE)
+#'  (default TRUE)
 #' @param ... optional arguments passed on to ggplot call
 #' @importFrom dplyr desc funs
 #' @importFrom vegan decostand
@@ -32,6 +32,9 @@
 #' @importFrom reshape2 melt
 #' @importFrom viridis scale_fill_viridis
 #' @keywords taxonomic diversity
+#' @return a list of 3 objects: ggplotdf (the underlying data for the ggplot),
+#'  othertax (an abundance-sorted dataframe of the OTUs summarized in "other"),
+#'  ggplotobj (the generated ggplot2 object)
 #' @examples
 #' ## Short example
 #'

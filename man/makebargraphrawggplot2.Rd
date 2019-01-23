@@ -25,7 +25,7 @@ consists out of direct Illumina counts, or is really the raw csv from
 Ramiro (default TRUE)}
 
 \item{tax.prob}{shows whether the taxonomy file contains probabilites
-4(default FALSE)}
+(default FALSE)}
 
 \item{tresh}{is a threshold for the probability taxonomy duplicate matching
 (to be implemented, default 85)}
@@ -40,6 +40,11 @@ used (defaults to FALSE)}
 (default TRUE)}
 
 \item{...}{optional arguments passed on to ggplot call}
+}
+\value{
+a list of 3 objects: ggplotdf (the underlying data for the ggplot),
+ othertax (an abundance-sorted dataframe of the OTUs summarized in "other"),
+ ggplotobj (the generated ggplot2 object)
 }
 \description{
 This function uses a taxonomy file (i.e. an RDP naive bayesian fixed-rank
