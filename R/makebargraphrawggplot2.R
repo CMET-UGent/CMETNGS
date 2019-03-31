@@ -5,9 +5,12 @@
 #' Only the top-n OTUs (in relative abundance) among all samples are displayed.
 #' All other OTUs are summed into a part of the graph designated as "other".
 #' The resulting object contains information about the composition of "other".
+#' Allows passing on metadata to facet on.
 #'
 #' @param tax is a taxonomy file, raw.
 #' @param shared is a shared (OTU-by-sample) file, filtered per sample group.
+#' @param metadata is an optional metadata table containing columns called
+#'   Factor1 and Factor2 used for facetting the data.
 #' @param topn is the top number of taxa selected to display (maximum 11,
 #'  default 8)
 #' @param shared.abs is a logical showing wether the shared file already
@@ -25,6 +28,9 @@
 #'  used (defaults to FALSE)
 #' @param plot states wether or not to print the plot within the function
 #'  (default TRUE)
+#' @param facet logical indicating wether or not to facet the stacked bargraphs
+#'  depending upon the metadata variables (defaults to FALSE). If TRUE, but no
+#'  metadata is supplied a warning is given and an unfacetted plot is generated.
 #' @param ... optional arguments passed on to ggplot call
 #' @importFrom dplyr desc funs
 #' @importFrom vegan decostand
@@ -43,7 +49,7 @@
 #'
 #' @export
 
-makebargraphrawggplot2<-function(tax,shared,topn=8,
+makebargraphrawggplot2<-function(tax,shared,metadata,topn=8,
                                  taxlevel=c("Regnum","Phylum", "Classis", "Ordo",
                                             "Familia", "Genus","Species"),
                                  shared.abs=T,tax.prob=F,tresh=85,samples,
