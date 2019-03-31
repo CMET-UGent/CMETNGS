@@ -51,7 +51,7 @@ This function uses a taxonomy file (i.e. an RDP naive bayesian fixed-rank
 asignment detail) and a shared file to create 100% summed stacked bargraphs.
 Only the top-n OTUs (in relative abundance) among all samples are displayed.
 All other OTUs are summed into a part of the graph designated as "other".
-The resulting object contaisn information about the composition of "other".
+The resulting object contains information about the composition of "other".
 }
 \examples{
 ## Short example
