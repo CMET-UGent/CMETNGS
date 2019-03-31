@@ -4,7 +4,7 @@
 #' asignment detail) and a shared file to create 100% summed stacked bargraphs.
 #' Only the top-n OTUs (in relative abundance) among all samples are displayed.
 #' All other OTUs are summed into a part of the graph designated as "other".
-#' The resulting object contaisn information about the composition of "other".
+#' The resulting object contains information about the composition of "other".
 #'
 #' @param tax is a taxonomy file, raw.
 #' @param shared is a shared (OTU-by-sample) file, filtered per sample group.
@@ -242,7 +242,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     #df containing all other taxa, ranked
     suppressWarnings(othertax <- data.frame(othertax,classif=rownames(othertax),taxsum=taxum))
     othertax <- othertax %>% dplyr::group_by(classif) %>%
-      dplyr::summarise_all(funs(sum)) %>%
+      dplyr::summarise_all(list(~sum)) %>%
       dplyr::arrange(desc(taxsum))
   }else{
     data_matrix_tax_other <- t(as.data.frame(data_matrix_tax_other))
