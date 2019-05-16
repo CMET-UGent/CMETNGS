@@ -11,6 +11,7 @@
 #'  bars is available so it is the users responsibility to make sure it is.
 #' @param printing logical to indicate whether or not the plot should be displayed
 #' @importFrom ggplot2 ggplot geom_line ylab geom_errorbar aes
+#' @importFrom utils read.table
 #' @keywords mothur, collector curves
 #' @return The underlying dataframe for the plot and the plot (if printing is set to TRUE)
 #' @examples
