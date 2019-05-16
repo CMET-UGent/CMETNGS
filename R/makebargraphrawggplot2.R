@@ -242,7 +242,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     #df containing all other taxa, ranked
     suppressWarnings(othertax <- data.frame(othertax,classif=rownames(othertax),taxsum=taxum))
     othertax <- othertax %>% dplyr::group_by(classif) %>%
-      dplyr::summarise_all(list(~sum)) %>%
+      dplyr::summarise_all(list(sum)) %>%
       dplyr::arrange(desc(taxsum))
   }else{
     data_matrix_tax_other <- t(as.data.frame(data_matrix_tax_other))
