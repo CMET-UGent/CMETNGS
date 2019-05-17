@@ -6,7 +6,7 @@
 \usage{
 highqualgraphR(x, filename, res = 1200, pointsize = 12,
   embed = FALSE, extension = "pdf", graphicstype = "cairo",
-  colorspace = "cmyk")
+  colorspace = "cmyk", subdirectory = "/figure")
 }
 \arguments{
 \item{x}{a ggplot2 object.}
@@ -32,6 +32,9 @@ devices (defaults to "cairo", but requires cairo graphics)}
 the default colorspace should be CMYK but for on-screen viewing srgb may
 be more desirable. Can also be set to gray to enable greyscale printing.
 Defaults to CMYK.}
+
+\item{subdirectory}{a sub-directory to the current working directory where
+to save the file. If it does not exist, it is created. Defaults to "figure/"}
 }
 \description{
 This function takes a ggplot2 object and a series of extensions as input
