@@ -230,9 +230,12 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   #select top  n OTUs, and remove OTU.count column
   dimord<-dim(data_matrix_tax_final)
   data_matrix_tax_top <- data_matrix_tax_final[1:topn,1:(dimord[2]-1)]
+  if((topn+1)<=dimord[1]){
   data_matrix_tax_other <- data_matrix_tax_final[(topn+1):dimord[1],1:(dimord[2]-1)]
   othertax <- data_matrix_tax_other
-
+  } else {
+    othertax <- NULL
+  } # this situation can happen e.g. at phylum level
   if(!is.null(dim(othertax)))
   {
     rownames(othertax)<- plyr::mapvalues(rownames(data_matrix_tax_other),
@@ -244,15 +247,15 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     othertax <- othertax %>% dplyr::group_by(classif) %>%
       dplyr::summarise_all(list(sum)) %>%
       dplyr::arrange(desc(taxsum))
+    #format data for plotting
+    data_matrix_tax_plot<-rbind(data_matrix_tax_top,colSums(data_matrix_tax_other))
+    #take a sum over all the 'other' sequences
+    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,method="total",MARGIN=2)
+    #relatieve counts per staal
   }else{
-    data_matrix_tax_other <- t(as.data.frame(data_matrix_tax_other))
-    rownames(data_matrix_tax_other) <- as.character(compclass.val$classified[which(compclass.val$current==rownames(data_matrix_tax_final)[nrow(data_matrix_tax_final)])])
-
+    data_matrix_tax_plot <- data_matrix_tax_top
+    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,method="total",MARGIN=2)
   }
-
-  #format data for plotting
-  data_matrix_tax_plot<-rbind(data_matrix_tax_top,colSums(data_matrix_tax_other)) #take a sum over all the 'other' sequences
-  data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,method="total",MARGIN=2) #relatieve counts per staal
   #normally, at this point, we would assign names to the "unclassifieds"
   if(tax.prob==F)
   {
@@ -262,12 +265,14 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     if(length(unclass.plot.idx)!=0){
       for(i in 1:length(unclass.plot.idx))
       {
-        rownames(data_matrix_tax_stand_plot)[unclass.plot.idx[i]]<-as.character(compclass.val[compclass.val$current==rownames(data_matrix_tax_stand_plot)[unclass.plot.idx[i]],]$classified)
+        rownames(data_matrix_tax_stand_plot)[unclass.plot.idx[i]] <-
+          as.character(compclass.val[compclass.val$current==rownames(data_matrix_tax_stand_plot)[unclass.plot.idx[i]],]$classified)
       }}
     if(length(incert.plot.idx)!=0){
       for(i in 1:length(incert.plot.idx))
       {
-        rownames(data_matrix_tax_stand_plot)[incert.plot.idx[i]]<-as.character(compclass.val[compclass.val$current==rownames(data_matrix_tax_stand_plot)[incert.plot.idx[i]],]$classified)
+        rownames(data_matrix_tax_stand_plot)[incert.plot.idx[i]] <-
+          as.character(compclass.val[compclass.val$current==rownames(data_matrix_tax_stand_plot)[incert.plot.idx[i]],]$classified)
       }}
     #check for replicated unclassifieds (!) ==> see if summing is not more "sensible" after all?
     if(length(unique(rownames(data_matrix_tax_stand_plot)[duplicated(rownames(data_matrix_tax_stand_plot))]))!=0){
@@ -281,9 +286,9 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
 
     }
   }
-
+  if((topn+1)<=dimord[1]){
   rownames(data_matrix_tax_stand_plot)[nrow(data_matrix_tax_stand_plot)]<-"other"
-
+  }
   ####actual plotting####
   datamatmelt<-melt(data_matrix_tax_stand_plot)
 
