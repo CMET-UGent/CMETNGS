@@ -33,6 +33,7 @@ Imports:
     gclus,
     magrittr,
     data.table,
-    openxlsx
+    openxlsx,
+    RColorBrewer
 Date: 2019-01-23
 RoxygenNote: 6.1.1

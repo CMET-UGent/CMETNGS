@@ -92,7 +92,7 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
 
   # Create subfolder figure to save your files
   working_directory <- getwd()
-  subdirectory <- "figure/"
+  subdirectory <- subdirectory
   if(!dir.exists(file.path(working_directory, subdirectory))){
     dir.create(file.path(working_directory, subdirectory), showWarnings = FALSE)
   }
