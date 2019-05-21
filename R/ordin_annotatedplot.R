@@ -1,17 +1,21 @@
-#' Create color and shape annotation for base vegan ordination plots
+#' Create an annotated ordination graph
 #'
-#' This function uses a vegan ordination object (e.g. from metaMDS) and
-#' a valid metadata table with Factor1 and Factor2 and returns a list with
-#' colvect and pchvect. The colvect supports at maximum 9 levels of Factor 1 (
-#' otherwise only 1 color (#E41A1C) is returned). The pchvect supports at
-#' maximum 5 levels of Factor 1 (otherwise only 1 shape, 15 (filled square)) is
-#' retured.
+#' This function is a wrapper around CMETNGS::ordin_annotate and CMETNGS::ordin_legend:
+#' it uses a vegan ordination object (e.g. from metaMDS) and a valid metadata
+#' table with Factor1 and Factor2 to create an annotated plot.
 #'
 #' @param ordinobj a vegan-created ordination object (i.e. ordinobj$points must
 #'  exist)
 #' @param metadata a valid CMET metadata object, containing minimally the sample
 #'  names, Factor1 and Factor2.
+#' @param location where to put the legend on the plot, defaults to "bottomleft"
+#' @param addLabels wether or not to add sample labels to the ordination (
+#'  defaults to TRUE)
+#' @param addLegend a logical, indicating wether or not to add a legend to the
+#'  plot. Defaults to TRUE.
 #' @importFrom RColorBrewer brewer.pal
+#' @importFrom graphics legend points
+#' @importFrom vegan ordiplot ordipointlabel metaMDS
 #' @keywords ordination
 #' @return A list with the colvector and pchvector
 #' @examples
@@ -26,13 +30,11 @@
 #' dune.md <- data.frame(Factor1=c(rep("Dune1",nrow(dune)/2),
 #' rep("Dune2",nrow(dune)/2)),Factor2=c(rep("Grass",7),rep("Shrub",7),
 #' rep("Tree",6)))
-#' veclist <- ordin_annotate(dune.mds,dune.md)
-#' dune.mds$species <- wascores(dune.mds$points, dune, expand = TRUE)
-#' pl <- ordiplot(dune.mds, type = "none")
-#' points(pl, "sites", pch=veclist$pchvect, col=veclist$colvect, bg="yellow")
+#' ordin_annotatedplot(dune.mds,dune.md)
 #' @export
 
-ordin_annotate <- function(ordinobj,metadata)
+ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
+                                addLabels=TRUE,addLegend=TRUE)
 {
   # subset/reorder metadata ----------------------------------------------------
   md.ordinobj <- metadata[rownames(ordinobj$points),]
@@ -69,7 +71,47 @@ ordin_annotate <- function(ordinobj,metadata)
                   "supported by this function (5). \n","Hence, only one",
                   "shape will be used in the ordination plot"))
   }
-  # create and return list of results
-  reslist <- list(colvect=colvect,pchvect=pchvect)
-  return(reslist)
+  ordiplot(ordinobj,type="n",display="sites")
+  if(addLabels){ordipointlabel(ordinobj,display = "sites",add=TRUE)}
+  if(sum(grepl("metaMDS",class(ordinobj)))){
+    points(ordinobj,pch=pchvect,col=colvect)
+  } else {
+    if(is.list(ordinobj)){
+      x <- ordinobj$points[,1]
+      y <- ordinobj$points[,2]
+      points(x,y,pch=pchvect,col=colvect)
+    }else{
+      x <- ordinobj[,1]
+      y <- ordinobj[,2]
+      points(x,y,pch=pchvect,col=colvect)
+    }
+  }
+
+  if(addLegend){
+    if(nlevels(factor(metadata$Factor1))<=length(brewset)){
+      if(nlevels(factor(metadata$Factor2))<=5){
+        legdf <- data.frame(expand.grid(brewset[1:nlevels(factor(metadata$Factor1))],
+                                        pchset[1:nlevels(factor(metadata$Factor2))]),
+                            label=do.call(paste,
+                                          expand.grid(levels(metadata$Factor1),
+                                                      levels(metadata$Factor2))))
+        legend(location,
+               legend = legdf$label,
+               col = as.character(legdf$Var1),
+               pch = legdf$Var2)
+      } else {
+        legend(location,
+               legend = levels(factor(metadata$Factor1)),
+               col=brewset[1:nlevels(factor(metadata$Factor1))],
+               pch = pchset[1])
+      }
+    } else {
+      if(nlevels(factor(metadata$Factor2))<=5){
+        legend(location,
+               legend = levels(factor(metadata$Factor2)),
+               col= brewset[1],
+               pch = pchset[1:nlevels(factor(metadata$Factor2))])
+      }
+    }
+  }
 }

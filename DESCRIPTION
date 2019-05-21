@@ -12,9 +12,9 @@ LazyData: true
 URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
 Depends: 
-    R (>= 3.3.0)
+    R (>= 3.4.0),
+    vegan
 Imports:
-    vegan,
     phyloseq,
     Biostrings,
     ggplot2,
