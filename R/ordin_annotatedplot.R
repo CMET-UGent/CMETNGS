@@ -49,8 +49,8 @@ ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
                       levels(factor(md.ordinobj$Factor1))[i])]<- brewset[i]
     }
   }else{
-    warning(paste("You supplied a metadata factor with more levels",
-                  nlevels(factor(md.ordinobj$Factor1)),"than currently",
+    warning(paste("You supplied a metadata factor with more levels (",
+                  nlevels(factor(md.ordinobj$Factor1)),") than currently",
                   "supported by this function (9). \n","Hence, only one",
                   "color will be used in the ordination plot"))
   }
@@ -66,8 +66,8 @@ ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
                       levels(factor(md.ordinobj$Factor2))[i])]<- pchset[i]
     }
   }else{
-    warning(paste("You supplied a metadata factor with more levels",
-                  nlevels(factor(md.ordinobj$Factor2)),"than currently",
+    warning(paste("You supplied a metadata factor with more levels (",
+                  nlevels(factor(md.ordinobj$Factor2)),") than currently",
                   "supported by this function (5). \n","Hence, only one",
                   "shape will be used in the ordination plot"))
   }
