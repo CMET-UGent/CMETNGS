@@ -20,6 +20,8 @@
 #'  the default colorspace should be CMYK but for on-screen viewing srgb may
 #'  be more desirable. Can also be set to gray to enable greyscale printing.
 #'  Defaults to CMYK.
+#' @param subdirectory a sub-directory to the current working directory where
+#'  to save the file. If it does not exist, it is created. Defaults to "figure/"
 #' @importFrom assertthat is.string
 #' @importFrom ggplot2 is.ggplot
 #' @importFrom grDevices pdf png tiff svg postscript dev.off
@@ -37,10 +39,13 @@
 
 highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
                          extension = "pdf", graphicstype="cairo",
-                         colorspace="cmyk")
+                         colorspace="cmyk",subdirectory="/figure")
 {
   #sanity check for filename
   assertthat::assert_that(assertthat::is.string(filename))
+  if(!assertthat::assert_that(assertthat::is.string(subdirectory))){
+    stop("You did not supply a valid format for the subdirectory")
+  }
   #see ?assertthat:assert_that and ?assertthat:is.string
   #### Check wether x is a ggplot object ####
   if(! ggplot2::is.ggplot(x)){stop("your object (x) is not a ggplot object")}
@@ -87,8 +92,10 @@ highqualgraphR<-function(x,filename,res=1200,pointsize=12,embed=FALSE,
 
   # Create subfolder figure to save your files
   working_directory <- getwd()
-  subdirectory <- "figure/"
-  dir.create(file.path(working_directory, subdirectory), showWarnings = FALSE)
+  subdirectory <- subdirectory
+  if(!dir.exists(file.path(working_directory, subdirectory))){
+    dir.create(file.path(working_directory, subdirectory), showWarnings = FALSE)
+  }
 
   filename <- paste(subdirectory, filename, sep = "")
 
