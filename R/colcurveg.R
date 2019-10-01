@@ -11,6 +11,8 @@
 #'  bars is available so it is the users responsibility to make sure it is.
 #' @param printing logical to indicate whether or not the plot should be displayed
 #' @importFrom ggplot2 ggplot geom_line ylab geom_errorbar aes
+#' @importFrom utils read.table
+#' @importFrom rlang .data
 #' @keywords mothur, collector curves
 #' @return The underlying dataframe for the plot and the plot (if printing is set to TRUE)
 #' @examples
@@ -29,11 +31,12 @@ colcurveg <- function(fnpref,groups,fnpost,errorbars=FALSE,printing=FALSE)
     calcdfcomplete <- rbind(calcdfcomplete,calcdfcomplete.tmp)
   }
   names(calcdfcomplete)[ncol(calcdfcomplete)]<-"Sample"
-  calcgg <- ggplot(aes(x=numsampled,y=X0.03,color=Sample),data=calcdfcomplete) +
+  calcgg <- ggplot(aes(x=.data$numsampled,y=.data$X0.03,color=.data$Sample),
+                   data=calcdfcomplete) +
     geom_line() + ylab(paste(fnpost," index",sep=""))
   if(errorbars==TRUE)
   {
-    calcggerr <- calcgg + geom_errorbar(aes(ymin=lci,ymax=hci))
+    calcggerr <- calcgg + geom_errorbar(aes(ymin=.data$lci,ymax=.data$hci))
     if(printing==TRUE){print(calcggerr)}
     reslist <- list(plotgg=calcggerr,underlyingdf=calcdfcomplete)
   }else{

@@ -1,7 +1,7 @@
 Package: CMETNGS
 Type: Package
 Title: Convenience functions for CMET NGS automated pipeline
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Frederiek - Maarten","Kerckhof",email="frederiekmaarten.kerckhof@ugent.be",role=c("aut","cre")),person("Kim", "De Paepe", email="kim.depaepe@ugent.be", role="aut"),person("Tim", "Lacoere",  email="tim.lacoere@ugent.be", role="aut"),person("Ruben", "Props", email="ruben.props@ugent.be", role="aut"))
 Maintainer: F.M. Kerckhof <frederiekmaarten.kerckhof@ugent.be>
 Description: Set of functions to aid in visualisation and
@@ -12,7 +12,7 @@ LazyData: true
 URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
 Depends: 
-    R (>= 3.3.0)
+    R (>= 3.5.0)
 Imports:
     vegan,
     phyloseq,
@@ -33,6 +33,8 @@ Imports:
     gclus,
     magrittr,
     data.table,
-    openxlsx
-Date: 2019-01-23
+    openxlsx,
+    rlang,
+    readxl
+Date: 2019-10-01
 RoxygenNote: 6.1.1

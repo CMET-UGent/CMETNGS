@@ -31,6 +31,7 @@
 #' @importFrom ggplot2 ggplot aes geom_bar theme element_text labs theme_minimal scale_fill_brewer
 #' @importFrom reshape2 melt
 #' @importFrom viridis scale_fill_viridis
+#' @importFrom rlang .data
 #' @keywords taxonomic diversity
 #' @return a list of 3 objects: ggplotdf (the underlying data for the ggplot),
 #'  othertax (an abundance-sorted dataframe of the OTUs summarized in "other"),
@@ -199,7 +200,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     shared.tax<-data.frame(shared,seltax.val)
     for(i in 1:length(treshedmulttax))
     {
-      corresp<-dupframe.select[dupframe.select$taxon==treshedmulttax[i],"full"]
+      corresp<-selframe.duplo.select[selframe.duplo.select$taxon==treshedmulttax[i],"full"]
       #print(corresp)
       #print(which(as.character(shared.tax$seltax.val)==as.character(corresp)))
       for(j in 1:length(corresp))
@@ -241,9 +242,9 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     taxum <- rowSums(othertax)
     #df containing all other taxa, ranked
     suppressWarnings(othertax <- data.frame(othertax,classif=rownames(othertax),taxsum=taxum))
-    othertax <- othertax %>% dplyr::group_by(classif) %>%
+    othertax <- othertax %>% dplyr::group_by(.data$classif) %>%
       dplyr::summarise_all(list(~sum)) %>%
-      dplyr::arrange(desc(taxsum))
+      dplyr::arrange(desc(.data$taxsum))
   }else{
     data_matrix_tax_other <- t(as.data.frame(data_matrix_tax_other))
     rownames(data_matrix_tax_other) <- as.character(compclass.val$classified[which(compclass.val$current==rownames(data_matrix_tax_final)[nrow(data_matrix_tax_final)])])
@@ -288,8 +289,8 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   datamatmelt<-melt(data_matrix_tax_stand_plot)
 
   datamatmelt$Var2o<-factor(datamatmelt$Var2,unique(as.character(datamatmelt$Var2))) #keep original order
-  p<-ggplot(data=datamatmelt,aes(x=factor(Var2o),y=value), ...)+
-    geom_bar(stat="identity",aes(fill=factor(Var1,levels=rev(levels(Var1)))))+
+  p<-ggplot(data=datamatmelt,aes(x=factor(.data$Var2o),y=.data$value), ...)+
+    geom_bar(stat="identity",aes(fill=factor(.data$Var1,levels=rev(levels(.data$Var1)))))+
     theme_minimal(base_size=10) + theme(axis.text.x=element_text(angle=90,
                                                                  hjust=1))+
     labs(x=NULL,y="Relative abundance",
