@@ -38,4 +38,4 @@ Imports:
     readxl,
     RColorBrewer
 Date: 2019-10-01
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2

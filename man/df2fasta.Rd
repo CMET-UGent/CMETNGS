@@ -4,8 +4,12 @@
 \alias{df2fasta}
 \title{Conversion of data frames with correct layout to fasta files.}
 \usage{
-df2fasta(dataframe, filename = "fastadf", seqIDcolumn = "SeqIDs",
-  seqColumn = "readseq")
+df2fasta(
+  dataframe,
+  filename = "fastadf",
+  seqIDcolumn = "SeqIDs",
+  seqColumn = "readseq"
+)
 }
 \arguments{
 \item{dataframe}{a dataframe containing sequence identifiers and sequences

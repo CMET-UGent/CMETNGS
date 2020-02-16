@@ -4,8 +4,14 @@
 \alias{preformattax}
 \title{Reformatter of taxonomy files from mothur for use in R}
 \usage{
-preformattax(taxonomy, OTUtax = TRUE, probab = TRUE,
-  keepProbab = TRUE, keepOTU = FALSE, keepSize = FALSE)
+preformattax(
+  taxonomy,
+  OTUtax = TRUE,
+  probab = TRUE,
+  keepProbab = TRUE,
+  keepOTU = FALSE,
+  keepSize = FALSE
+)
 }
 \arguments{
 \item{taxonomy}{is a taxonomy file, raw.}

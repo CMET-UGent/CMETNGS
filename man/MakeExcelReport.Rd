@@ -4,8 +4,13 @@
 \alias{MakeExcelReport}
 \title{Function to automatically generate the Excel-export OTU table}
 \usage{
-MakeExcelReport(shared, taxonomy, otureps = NULL, metadata = NULL,
-  resultfn = "Results.xlsx")
+MakeExcelReport(
+  shared,
+  taxonomy,
+  otureps = NULL,
+  metadata = NULL,
+  resultfn = "Results.xlsx"
+)
 }
 \arguments{
 \item{shared}{file location string for the shared file

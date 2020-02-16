@@ -4,8 +4,14 @@
 \alias{construct_phyloseq}
 \title{Function to automatically generate a phyloseq object from mothur output}
 \usage{
-construct_phyloseq(shared, taxonomy, otureps = NULL, metadata = NULL,
-  remove_singletons = TRUE, dataname = "phydata")
+construct_phyloseq(
+  shared,
+  taxonomy,
+  otureps = NULL,
+  metadata = NULL,
+  remove_singletons = TRUE,
+  dataname = "phydata"
+)
 }
 \arguments{
 \item{shared}{file location string for the shared file

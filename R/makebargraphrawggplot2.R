@@ -32,6 +32,7 @@
 #' @importFrom reshape2 melt
 #' @importFrom viridis scale_fill_viridis
 #' @importFrom rlang .data
+#' @importFrom tidyr pivot_longer
 #' @keywords taxonomic diversity
 #' @return a list of 3 objects: ggplotdf (the underlying data for the ggplot),
 #'  othertax (an abundance-sorted dataframe of the OTUs summarized in "other"),
@@ -146,7 +147,8 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     #colsummed matrix for duplicate entries
     for(i in 1:length(multtax))
     {
-      shared.mfsum[i,] <- colSums(shared.tax[which(shared.tax$seltax.val==multtax[i]),
+      shared.mfsum[i,] <- colSums(shared.tax[which(shared.tax$seltax.val==
+                                                     multtax[i]),
                                              1:ncol(shared.tax)-1])
     }
     shared.mfsum.tax<-data.frame(shared.mfsum,multtax)
@@ -200,7 +202,8 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
     shared.tax<-data.frame(shared,seltax.val)
     for(i in 1:length(treshedmulttax))
     {
-      corresp<-selframe.duplo.select[selframe.duplo.select$taxon==treshedmulttax[i],"full"]
+      corresp<-selframe.duplo.select[selframe.duplo.select$taxon==
+                                       treshedmulttax[i],"full"]
       #print(corresp)
       #print(which(as.character(shared.tax$seltax.val)==as.character(corresp)))
       for(j in 1:length(corresp))
@@ -212,7 +215,9 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
       }
     }
     shared.treshed.sum<-data.frame(shared.treshed.sum,rownames(shared.treshed.sum))
-    shared.tax.single<-shared.tax[shared.tax$seltax.val%in%setdiff(shared.tax$seltax.val,levels(selframe.duplo.select$full)),] #select all single occurences
+    shared.tax.single<-shared.tax[shared.tax$seltax.val %in%
+                                    setdiff(shared.tax$seltax.val,
+                                            levels(selframe.duplo.select$full)),] #select all single occurences
     names(shared.treshed.sum)<-names(shared.tax.single)
     #make sure that names are the same for rbind command
     shared.tax.final<-rbind(shared.treshed.sum,shared.tax.single)
@@ -253,21 +258,26 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   {
     rownames(othertax)<- plyr::mapvalues(rownames(data_matrix_tax_other),
                                          from=as.character(compclass.val$current),
-                                         to=as.character(compclass.val$classified),warn_missing = FALSE)
+                                         to=as.character(compclass.val$classified),
+                                         warn_missing = FALSE)
     taxum <- rowSums(othertax)
     #df containing all other taxa, ranked
-    suppressWarnings(othertax <- data.frame(othertax,classif=rownames(othertax),taxsum=taxum))
+    suppressWarnings(othertax <- data.frame(othertax,
+                                            classif=rownames(othertax),
+                                            taxsum=taxum))
     othertax <- othertax %>% dplyr::group_by(.data$classif) %>%
-      dplyr::summarise_all(list(~sum)) %>%
+      dplyr::summarise_all(list(sum)) %>%
       dplyr::arrange(desc(.data$taxsum))
     #format data for plotting
     data_matrix_tax_plot<-rbind(data_matrix_tax_top,colSums(data_matrix_tax_other))
     #take a sum over all the 'other' sequences
-    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,method="total",MARGIN=2)
+    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,
+                                          method="total",MARGIN=2)
     #relatieve counts per staal
   }else{
     data_matrix_tax_plot <- data_matrix_tax_top
-    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,method="total",MARGIN=2)
+    data_matrix_tax_stand_plot<-decostand(data_matrix_tax_plot,
+                                          method="total",MARGIN=2)
   }
   #normally, at this point, we would assign names to the "unclassifieds"
   if(tax.prob==F)
@@ -303,7 +313,13 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   rownames(data_matrix_tax_stand_plot)[nrow(data_matrix_tax_stand_plot)]<-"other"
   }
   ####actual plotting####
-  datamatmelt<-melt(data_matrix_tax_stand_plot)
+  #datamatmelt<-melt(data_matrix_tax_stand_plot)
+  dmttsp <- data.frame(Var1=rownames(data_matrix_tax_stand_plot),
+                       data_matrix_tax_stand_plot)
+  datamatmelt <- tidyr::pivot_longer(dmttsp,cols=-Var1,
+                                     names_to = "Var2",
+                                     values_to = "value") %>%
+    dplyr::arrange(Var2)
 
   datamatmelt$Var2o<-factor(datamatmelt$Var2,unique(as.character(datamatmelt$Var2))) #keep original order
   p<-ggplot(data=datamatmelt,aes(x=factor(.data$Var2o),y=.data$value), ...)+

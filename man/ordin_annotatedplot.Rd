@@ -4,8 +4,13 @@
 \alias{ordin_annotatedplot}
 \title{Create an annotated ordination graph}
 \usage{
-ordin_annotatedplot(ordinobj, metadata, location = "bottomleft",
-  addLabels = TRUE, addLegend = TRUE)
+ordin_annotatedplot(
+  ordinobj,
+  metadata,
+  location = "bottomleft",
+  addLabels = TRUE,
+  addLegend = TRUE
+)
 }
 \arguments{
 \item{ordinobj}{a vegan-created ordination object (i.e. ordinobj$points must
