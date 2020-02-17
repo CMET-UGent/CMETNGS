@@ -235,12 +235,13 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
 
   #select top  n OTUs, and remove OTU.count column
   dimord<-dim(data_matrix_tax_final)
-  data_matrix_tax_top <- data_matrix_tax_final[1:topn,1:(dimord[2]-1)]
   if(topn>dimord[1]){
-    stop(paste("You want to select a number of taxa (topn=",topn,
-               ") which exceeds the amount of taxa (",dimord[1],
-               ") at the selected taxonomy level (",taxlevel,
-               "). Please adjust one of them"))
+    warning(paste("You want to select a number of taxa (topn=",topn,
+                  ") which exceeds the amount of taxa (",dimord[1],
+                  ") at the selected taxonomy level (",taxlevel,
+                  "). Hence the amount of taxa was (silently)",
+                  "reduced to the available amount."))
+
   }
   if(topn==dimord[1]){
     warning(paste("You selected a number of taxa(topn=",topn,
@@ -248,9 +249,12 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
                   "at the selected taxonomy level.",
                   "No other taxon group will be shown."))
   }
+  topn <- min(topn,dimord[1]) # if top n is larger than available taxa, e.g. at phylum level
+  data_matrix_tax_top <- data_matrix_tax_final[1:topn,1:(dimord[2]-1)]
   if((topn+1)<=dimord[1]){
-  data_matrix_tax_other <- data_matrix_tax_final[(topn+1):dimord[1],1:(dimord[2]-1)]
-  othertax <- data_matrix_tax_other
+    data_matrix_tax_other <- data_matrix_tax_final[(topn+1):dimord[1],
+                                                   1:(dimord[2]-1)]
+    othertax <- data_matrix_tax_other
   } else {
     othertax <- NULL
   } # this situation can happen e.g. at phylum level
