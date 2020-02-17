@@ -90,6 +90,33 @@ ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
   if(addLegend){
     if(nlevels(factor(metadata$Factor1))<=length(brewset)){
       if(nlevels(factor(metadata$Factor2))<=5){
+        if(sum(levels(factor(metadata$Factor1)) %in% levels(factor(metadata$Factor2)))!=0){
+          sharedlevs <- levels(factor(metadata$Factor1))[levels(factor(metadata$Factor1)) %in%
+                                                            levels(factor(metadata$Factor2))]
+          fac1uniqlevs <- levels(factor(metadata$Factor1))[!(levels(factor(metadata$Factor1)) %in%
+                                                                levels(factor(metadata$Factor2)))]
+          fac2uniqlevs <- levels(factor(metadata$Factor2))[!(levels(factor(metadata$Factor2)) %in%
+                                                                levels(factor(metadata$Factor1)))]
+          allfacs <- paste(metadata$Factor1,metadata$Factor2)
+          pchleg <- rep(pchset[1],length(allfacs))
+          for(i in 2:nlevels(factor(allfacs))){
+            pchleg[grep(paste0(levels(factor(metadata$Factor2))[i]),
+                        do.call(rbind,strsplit(allfacs,split=" "))[,2])]<- pchset[i]
+          }
+          colleg<-rep(brewset[1],length(rownames(mdsjac$points)))
+          for(i in 2:nlevels(factor(metadata$Factor1))){
+            colleg[grep(paste0(levels(factor(metadata$Factor1))[i]),
+                        do.call(rbind,strsplit(allfacs,split=" "))[,1])]<- brewset[i]
+          }
+          legdf <- data.frame(Var1=colleg,
+                              Var2=pchleg,
+                              label=paste(metadata$Factor1,
+                                          metadata$Factor2))
+          legend("bottomleft",
+                 legend = legdf$label,
+                 col = legdf$Var1,
+                 pch = legdf$Var2)
+        } else {
         legdf <- data.frame(expand.grid(brewset[1:nlevels(factor(metadata$Factor1))],
                                         pchset[1:nlevels(factor(metadata$Factor2))]),
                             label=do.call(paste,
@@ -99,6 +126,7 @@ ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
                legend = legdf$label,
                col = as.character(legdf$Var1),
                pch = legdf$Var2)
+        }
       } else {
         legend(location,
                legend = levels(factor(metadata$Factor1)),
