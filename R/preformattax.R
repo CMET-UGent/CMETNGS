@@ -24,9 +24,11 @@
 #' The Size column is dropped.
 #' @examples
 #' ## Short example
-#'
-#' # Load precomputed example data
-#' #TODO: find testset
+#' # make sure library(CMETNGS) is loaded
+#' taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
+#'                               package = "CMETNGS",mustWork = TRUE)
+#' taxonomy <- data.table::fread(input = taxonomydataset)
+#' taxonomy.clean <- preformattax(taxonomy=taxonomy)
 #'
 #' @export
 

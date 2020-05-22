@@ -1,7 +1,7 @@
 Package: CMETNGS
 Type: Package
 Title: Convenience functions for CMET NGS automated pipeline
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(person("Frederiek - Maarten","Kerckhof",email="frederiekmaarten.kerckhof@ugent.be",role=c("aut","cre")),person("Kim", "De Paepe", email="kim.depaepe@ugent.be", role="aut"),person("Tim", "Lacoere",  email="tim.lacoere@ugent.be", role="aut"),person("Ruben", "Props", email="ruben.props@ugent.be", role="aut"))
 Maintainer: F.M. Kerckhof <frederiekmaarten.kerckhof@ugent.be>
 Description: Set of functions to aid in visualisation and
@@ -11,9 +11,11 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
+Remotes: github::Liliad/sangeranalyseR
 Depends: 
-    R (>= 3.5.0),
-    vegan
+    R (>= 3.6.0),
+    vegan,
+    sangeranalyseR
 Imports:
     phyloseq,
     Biostrings,
