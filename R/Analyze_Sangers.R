@@ -21,18 +21,18 @@
 #'
 #' fastademoset <- system.file("extdata","sanger_demodata.txt",
 #'                               package = "CMETNGS",mustWork = TRUE)
-#' fastalnres   <- Analyze_sangers(inputfile=fastademoset)
+#' fastalnres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",rev_suffix="R")
 #'
 #' @export
 
-Analyze_Sangers <- function(inputfile=NULL,folder=NULL,
+Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
                             fwd_suffix="f",rev_suffix="r",fastas_only=FALSE,
                             resfolder="Results",verbose=FALSE,
                             ...){
   if(!dir.exists(file.path(resfolder))){
     dir.create(file.path(resfolder))}
   if(!is.null(inputfile)){
-    if(!is.null(folder)){stop(data(),
+    if(!is.null(inputfolder)){stop(date(),
                               " --- you need to supply either an inputfile or",
                               "a folder, but cannot supply both.\n")}
     if(verbose){cat(date()," --- Starting readout of",inputfile,".\n")}
@@ -41,6 +41,9 @@ Analyze_Sangers <- function(inputfile=NULL,folder=NULL,
                                       use.names=TRUE,...)
     if(verbose){cat(date()," --- Succesfully parsed",length(SangerDataSet),
                     "reads.\n")}
+    # additional sanity check: is there a match with the current suffix or not?
+
+    # actually extract fwd/rev
     revs    <- SangerDataSet[grep(paste0("^.*",rev_suffix,"$"),
                                names(SangerDataSet))]
     revs.rc <- reverseComplement(revs)
@@ -65,8 +68,10 @@ Analyze_Sangers <- function(inputfile=NULL,folder=NULL,
       merged.reads[[i]] <-merge.reads(reads)
     }
     if(verbose){cat(date()," --- Merged ",length(fwds.s),"reads.\n")}
+    cons <- sapply(X=merged.reads,FUN=getconsensus)
+    writeXStringSet(DNAStringSet(cons),file.path(resfolder,"consensus.fasta"))
     } else {
-      # TODO: only use common part of the name to group F&R into
+      # TODO: only use common part of the name (with intersect2) to group F&R into
       # separate Xstringset for writing for easier DSP
       for(i in names(fwds.s)){
       writeXStringSet(fwds.s[i],filepath = file.path(resfolder,
@@ -80,10 +85,14 @@ Analyze_Sangers <- function(inputfile=NULL,folder=NULL,
                                                               "_revC.fasta")),
                         format = "fasta",append=FALSE)
       }
+      reslist <- list(fwd_reads=fwd.s,rev_reads_complement=revs.rc.s)
+      return(reslist)
       if(verbose){cat(date()," --- Analyze_sangers finished, wrote",length(fwds.s)+length(revs.rc.s),"files.\n")}
     }
   }else{
-
+    if(is.null(inputfolder)){stop(date(),
+                                   " --- you need to supply either an inputfile or",
+                                   "a folder. \n")}
   }
 
 }

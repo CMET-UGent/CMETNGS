@@ -17,6 +17,7 @@ Depends:
     vegan,
     sangeranalyseR
 Imports:
+    BiocGenerics,
     phyloseq,
     Biostrings,
     ggplot2,
@@ -40,4 +41,4 @@ Imports:
     readxl,
     RColorBrewer
 Date: 2019-10-01
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0

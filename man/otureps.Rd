@@ -4,11 +4,13 @@
 \name{otureps}
 \alias{otureps}
 \title{A dataframe called "outreps" with sequence identifiers and aligned sequences}
-\format{A data frame with 21640 rows and 2 variables:
+\format{
+A data frame with 21640 rows and 2 variables:
 \describe{
   \item{OTU}{sequence identifier Otu00001-Otu21640}
   \item{readseq}{filtered aligned DNA sequence}
-}}
+}
+}
 \usage{
 otureps
 }
