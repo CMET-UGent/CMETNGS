@@ -103,7 +103,7 @@ ordin_annotatedplot <- function(ordinobj,metadata,location="bottomleft",
             pchleg[grep(paste0(levels(factor(metadata$Factor2))[i]),
                         do.call(rbind,strsplit(allfacs,split=" "))[,2])]<- pchset[i]
           }
-          colleg<-rep(brewset[1],length(rownames(mdsjac$points)))
+          colleg<-rep(brewset[1],length(rownames(ordinobj$points)))
           for(i in 2:nlevels(factor(metadata$Factor1))){
             colleg[grep(paste0(levels(factor(metadata$Factor1))[i]),
                         do.call(rbind,strsplit(allfacs,split=" "))[,1])]<- brewset[i]

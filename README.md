@@ -30,3 +30,4 @@ df2fasta | bioconductor-based inverse of `fasta2dataframe` (useful in case you d
 MakeExcelReport | R function that takes absolute (!) paths to a shared, taxonomy and optional otureps fasta and automatically creates an excel file from it.
 myround | more robust rounding function
 construct_phyloseq | create a phyloseq object from mothur output, according to CMET SOP (different from `phyloseq::import_mothur` in that it works with the final files from our current SOP, with support for metadata)
+Analyze_Sangers | wrapper function for sangeranalyzeR package to deal with LGC/Tim Lacoere formatted data for 16S Sangers

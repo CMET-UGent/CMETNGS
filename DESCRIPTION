@@ -39,6 +39,8 @@ Imports:
     openxlsx,
     rlang,
     readxl,
-    RColorBrewer
+    RColorBrewer,
+    sangerseqR,
+    ape
 Date: 2019-10-01
 RoxygenNote: 7.1.0

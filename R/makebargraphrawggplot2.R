@@ -323,7 +323,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   datamatmelt <- tidyr::pivot_longer(dmttsp,cols=-Var1,
                                      names_to = "Var2",
                                      values_to = "value") %>%
-    dplyr::arrange(Var2)
+    dplyr::arrange(.data$Var2)
 
   datamatmelt$Var2o<-factor(datamatmelt$Var2,unique(as.character(datamatmelt$Var2))) #keep original order
   p<-ggplot(data=datamatmelt,aes(x=factor(.data$Var2o),y=.data$value), ...)+

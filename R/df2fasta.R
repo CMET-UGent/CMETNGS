@@ -9,7 +9,7 @@
 #'  sequences themselves (defaults to readseq)
 #' @param filename desirec filename (defaults to fastadf)
 #' @importFrom Biostrings DNAStringSet writeXStringSet
-#' @importFrom magrittr %>%
+#' @importFrom tidyr %>%
 #' @importFrom dplyr select
 #' @examples
 #' ## Short example

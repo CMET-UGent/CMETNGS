@@ -7,11 +7,14 @@
 Analyze_Sangers(
   inputfile = NULL,
   inputfolder = NULL,
-  fwd_suffix = "f",
-  rev_suffix = "r",
+  fwd_suffix = "F",
+  rev_suffix = "R",
   fastas_only = FALSE,
   resfolder = "Results",
   verbose = FALSE,
+  trim.cutoff = 0.005,
+  ncores = 2,
+  mintrim = 300L,
   ...
 )
 }
@@ -36,16 +39,36 @@ defaults to FALSE)}
 
 \item{verbose}{print out progress (defaults to FALSE)}
 
-\item{...}{additional arguments passed on to BioStrings::readDNAStringSet}
+\item{trim.cutoff}{sangeranalyseR::summarise.abi.folder argument (defaults to 5e-3)}
+
+\item{ncores}{number of cores for sangeranalyseR::summarise.abi.folder (
+defaults to 2, and will be set to 1 on windows)}
+
+\item{mintrim}{minimal length of trimmed reads in the folder workflow to
+retain before merging (defaults to 300)}
+
+\item{...}{additional arguments passed on to BioStrings::readDNAStringSet or
+sangeranalyseR::summarise.abi.folder in case inputfile==NULL and inputfolder
+is specified}
+}
+\value{
+either a list of the consensus reads, forward and reverse reads or a summarised abi folder
 }
 \description{
 Preprocessing and annotation of Sanger sequencing of the 16S rRNA gene
 }
 \examples{
-## File-based workflow (LGC-preprocessed)
+##File-based workflow (LGC-preprocessed)
 
 fastademoset <- system.file("extdata","sanger_demodata.txt",
                               package = "CMETNGS",mustWork = TRUE)
-fastalnres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",rev_suffix="R")
+consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",rev_suffix="R")
 
+##File-based workflow for DSP in BioEdit
+
+fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+                               rev_suffix="R",fastas_only=TRUE)
+##Folder-based workflow
+
+# TODO: find proper example set
 }
