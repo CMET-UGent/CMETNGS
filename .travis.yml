@@ -1,10 +1,11 @@
-language: R
+language: r
 cache: packages
 sudo: false
 
 warnings_are_errors: false
 
 r:
+  - oldrel
   - release
 
 bioc_required: true
