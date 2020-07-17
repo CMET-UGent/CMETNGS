@@ -1,10 +1,12 @@
 language: r
 cache: packages
-sudo: false
+dist: bionic
+os: linux
 
 warnings_are_errors: false
 
 r:
+  - release
   - oldrel
 
 bioc_required: true
