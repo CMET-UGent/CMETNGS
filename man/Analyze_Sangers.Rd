@@ -25,10 +25,10 @@ Analyze_Sangers(
 from an ABI capillary electrophoresis instrument. only used when raw=TRUE}
 
 \item{fwd_suffix}{string containing the suffix of the forward reads
-(defaults to f)}
+(defaults to F)}
 
 \item{rev_suffix}{string containing the suffix of the reverse reads
-(defaults to r)}
+(defaults to R)}
 
 \item{fastas_only}{if you do not want merging to occur but want separate
 fasta files to be spitted out for downstream processing in e.g. BioEdit. (
@@ -60,14 +60,6 @@ Preprocessing and annotation of Sanger sequencing of the 16S rRNA gene
 \examples{
 ##File-based workflow (LGC-preprocessed)
 
-fastademoset <- system.file("extdata","sanger_demodata.txt",
-                              package = "CMETNGS",mustWork = TRUE)
-consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",rev_suffix="R")
-
-##File-based workflow for DSP in BioEdit
-
-fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
-                               rev_suffix="R",fastas_only=TRUE)
 ##Folder-based workflow
 
 # TODO: find proper example set

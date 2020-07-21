@@ -4,9 +4,9 @@
 #' @param inputfolder folder containing the ab1 files with the raw spectrograms
 #'  from an ABI capillary electrophoresis instrument. only used when raw=TRUE
 #' @param fwd_suffix string containing the suffix of the forward reads
-#'  (defaults to f)
+#'  (defaults to F)
 #' @param rev_suffix string containing the suffix of the reverse reads
-#'  (defaults to r)
+#'  (defaults to R)
 #' @param fastas_only if you do not want merging to occur but want separate
 #'  fasta files to be spitted out for downstream processing in e.g. BioEdit. (
 #'  defaults to FALSE)
@@ -30,14 +30,15 @@
 #' @examples
 #' ##File-based workflow (LGC-preprocessed)
 #'
-#' fastademoset <- system.file("extdata","sanger_demodata.txt",
-#'                               package = "CMETNGS",mustWork = TRUE)
-#' consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",rev_suffix="R")
-#'
-#' ##File-based workflow for DSP in BioEdit
-#'
-#' fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
-#'                                rev_suffix="R",fastas_only=TRUE)
+# fastademoset <- system.file("extdata","sanger_demodata.txt",
+#                               package = "CMETNGS",mustWork = TRUE)
+# consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+#                                   rev_suffix="R",verbose=TRUE)
+#
+# ##File-based workflow for DSP in BioEdit
+#
+# fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+#                                rev_suffix="R",fastas_only=TRUE)
 #' ##Folder-based workflow
 #'
 #' # TODO: find proper example set
@@ -92,6 +93,7 @@ Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
     if(verbose){cat(date()," --- Merged ",length(fwds.s),"reads.\n")}
     cons <- sapply(X=merged.reads,FUN=getconsensus)
     writeXStringSet(DNAStringSet(cons),file.path(resfolder,"consensus.fasta"))
+    reslist <- list(forward=fwd.s,reversecomplemented=revs.rc.s,concensus=cons)
     } else {
       for(i in names(fwds.s)){
       writeXStringSet(fwds.s[i],filepath = file.path(resfolder,
@@ -105,7 +107,7 @@ Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
                                                               "_revC.fasta")),
                         format = "fasta",append=FALSE)
       }
-      reslist <- list(fwd_reads=fwds.s,rev_reads_complement=revs.rc.s)
+
       allseqs <- union(fwds.s,revs.rc.s)
       allnames <- names(allseqs)
       identifiernames <- sub("(.*)\\..*","\\1",allnames)
@@ -119,8 +121,9 @@ Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
                                                          paste0(gsub("\\.","\\_",i),
                                                                 ".fasta")),
                           format = "fasta",append=FALSE)
-        }
-      return(reslist)
+      }
+      reslist <- list(fwd_reads=fwds.s,rev_reads_complement=revs.rc.s,
+                      uniqueids=uniqueidnames)
       if(verbose){cat(date()," --- Analyze_sangers finished, wrote",
                       length(fwds.s)+length(revs.rc.s)+length(uniqueidnames),
                       "files.\n")}
@@ -184,7 +187,8 @@ Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
       stop(date()," --- Currently, export of non-consensus abi fastas is not",
            "implemented yet - check the returned list for more details")
     }
-    return(sfabifld)
+    reslist <- ssfabifld
+    return(reslist)
 
   }
 

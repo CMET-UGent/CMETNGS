@@ -39,8 +39,8 @@ ordin_legend <- function(metadata,location="bottomleft")
     if(nlevels(factor(metadata$Factor2))<=5){
       legdf <- data.frame(expand.grid(brewset[1:nlevels(factor(metadata$Factor1))],
                                     pchset[1:nlevels(factor(metadata$Factor2))]),
-                        label=do.call(paste,expand.grid(levels(metadata$Factor1),
-                                    levels(metadata$Factor2))))
+                        label=do.call(paste,expand.grid(levels(factor(metadata$Factor1)),
+                                    levels(factor(metadata$Factor2)))))
       legend(location,
            legend = legdf$label,
            col = as.character(legdf$Var1),
