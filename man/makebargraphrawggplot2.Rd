@@ -64,10 +64,32 @@ The resulting object contains information about the composition of "other".
 }
 \examples{
 ## Short example
+# make sure library(CMETNGS) is loaded
+shareddataset <- system.file("extdata","large_shared_file.shared",
+                              package = "CMETNGS",mustWork = TRUE)
+taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
+                              package = "CMETNGS",mustWork = TRUE)
 
-# Load precomputed example data
-#TODO: find testset
-
+shared <- data.table::fread(input = shareddataset,
+header = TRUE)
+taxonomy <- data.table::fread(input = taxonomydataset)
+shared <- as.data.frame(shared)
+desgroups <- shared$Group
+shared.x <- shared[,4:ncol(shared)]
+rownames(shared.x) <- desgroups
+shared.t <- as.data.frame(t(shared.x)) # transpose: OTUs in rows, samples in columns
+shared.t.ns <- shared.t[which(rowSums(shared.t)!=1),] # remove absolute singletons
+sharedns <- data.frame(label=rep(0.03,ncol(shared.t.ns)),
+                      Group=colnames(shared.t.ns),
+                      numOtus=nrow(shared.t.ns),t(shared.t.ns))
+taxonomy.spl <- CMETNGS::preformattax(taxonomy)
+taxonomy.np <- taxonomy.spl \%>\% dplyr::select(-dplyr::contains("Prob"))
+taxonomy.np.ns <- taxonomy.np[which(rownames(taxonomy.np) \%in\%
+rownames(shared.t.ns)),]
+barplot.genus <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+topn=8,taxlevel="Genus",shared.abs=TRUE,
+tax.prob=FALSE,samples="testsample",
+plot=TRUE)
 }
 \keyword{diversity}
 \keyword{taxonomic}

@@ -39,10 +39,32 @@
 #'  ggplotobj (the generated ggplot2 object)
 #' @examples
 #' ## Short example
+#' # make sure library(CMETNGS) is loaded
+#' shareddataset <- system.file("extdata","large_shared_file.shared",
+#'                               package = "CMETNGS",mustWork = TRUE)
+#' taxonomydataset <- system.file("extdata","large_OTU_basedtax.taxonomy",
+#'                               package = "CMETNGS",mustWork = TRUE)
 #'
-#' # Load precomputed example data
-#' #TODO: find testset
-#'
+#' shared <- data.table::fread(input = shareddataset,
+#' header = TRUE)
+#' taxonomy <- data.table::fread(input = taxonomydataset)
+#' shared <- as.data.frame(shared)
+#' desgroups <- shared$Group
+#' shared.x <- shared[,4:ncol(shared)]
+#' rownames(shared.x) <- desgroups
+#' shared.t <- as.data.frame(t(shared.x)) # transpose: OTUs in rows, samples in columns
+#' shared.t.ns <- shared.t[which(rowSums(shared.t)!=1),] # remove absolute singletons
+#' sharedns <- data.frame(label=rep(0.03,ncol(shared.t.ns)),
+#'                       Group=colnames(shared.t.ns),
+#'                       numOtus=nrow(shared.t.ns),t(shared.t.ns))
+#' taxonomy.spl <- CMETNGS::preformattax(taxonomy)
+#' taxonomy.np <- taxonomy.spl %>% dplyr::select(-dplyr::contains("Prob"))
+#' taxonomy.np.ns <- taxonomy.np[which(rownames(taxonomy.np) %in%
+#' rownames(shared.t.ns)),]
+#' barplot.genus <- makebargraphrawggplot2(tax=taxonomy.np.ns,shared=shared.t.ns,
+#' topn=8,taxlevel="Genus",shared.abs=TRUE,
+#' tax.prob=FALSE,samples="testsample",
+#' plot=TRUE)
 #' @export
 
 makebargraphrawggplot2<-function(tax,shared,topn=8,
@@ -57,7 +79,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
   taxlevel<-match.arg(taxlevel)
 
   ####make sure shared file hase absolute counts to start with####
-  if(shared.abs==T)
+  if(shared.abs==TRUE)
   {
     shared=shared
   }else{
@@ -85,7 +107,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
       class.colidx<-min(grep("unclassified",
                              as.character(as.matrix(tax[unclass.rowidx,]))))-1
       #column index of deepest assigned taxon
-      #consitency check to avoid stuff like Gp4 etc
+      #consistency check to avoid stuff like Gp4 etc
       untax <- as.matrix(tax)[unclass.index[i],class.colidx]
       if(grepl("[0-9]",untax)&&!(taxlevel%in%c("Kingdom","Phylum"))){
         while(grepl("[0-9]",untax)&&class.colidx>=1){
@@ -327,7 +349,7 @@ makebargraphrawggplot2<-function(tax,shared,topn=8,
 
   datamatmelt$Var2o<-factor(datamatmelt$Var2,unique(as.character(datamatmelt$Var2))) #keep original order
   p<-ggplot(data=datamatmelt,aes(x=factor(.data$Var2o),y=.data$value), ...)+
-    geom_bar(stat="identity",aes(fill=factor(.data$Var1,levels=rev(levels(.data$Var1)))))+
+    geom_bar(stat="identity",aes(fill=factor(.data$Var1,levels=rev(levels(factor(.data$Var1))))))+
     theme_minimal(base_size=10) + theme(axis.text.x=element_text(angle=90,
                                                                  hjust=1))+
     labs(x=NULL,y="Relative abundance",
