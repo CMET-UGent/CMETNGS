@@ -9,6 +9,8 @@ Analyze_Sangers(
   inputfolder = NULL,
   fwd_suffix = "F",
   rev_suffix = "R",
+  primerFname = "27F",
+  primerRname = "1492R",
   fastas_only = FALSE,
   resfolder = "Results",
   verbose = FALSE,
@@ -22,13 +24,20 @@ Analyze_Sangers(
 \item{inputfile}{LGC text file containing forward and reversed reads}
 
 \item{inputfolder}{folder containing the ab1 files with the raw spectrograms
-from an ABI capillary electrophoresis instrument. only used when raw=TRUE}
+from an ABI capillary electrophoresis instrument. only used when raw=TRUE
+(currently defunct, but should be easy to implement if there is need)}
 
 \item{fwd_suffix}{string containing the suffix of the forward reads
 (defaults to F)}
 
 \item{rev_suffix}{string containing the suffix of the reverse reads
 (defaults to R)}
+
+\item{primerFname}{string containting the (abbreviated) name of the forward primer
+(like it occurs in the fasta file, defaults to 27F)}
+
+\item{primerRname}{string containting the (abbreviated) name of the reverse primer
+(like it occurs in the fasta file, defaults to 27F)}
 
 \item{fastas_only}{if you do not want merging to occur but want separate
 fasta files to be spitted out for downstream processing in e.g. BioEdit. (
@@ -60,6 +69,15 @@ Preprocessing and annotation of Sanger sequencing of the 16S rRNA gene
 \examples{
 ##File-based workflow (LGC-preprocessed)
 
+fastademoset <- system.file("extdata","sanger_demodata.txt",
+                              package = "CMETNGS",mustWork = TRUE)
+consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+                                  rev_suffix="R",primerFname="27F",
+                                  primerRname="1492R",verbose=TRUE)
+##File-based workflow for DSP in BioEdit
+
+fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+                               rev_suffix="R",fastas_only=TRUE)
 ##Folder-based workflow
 
 # TODO: find proper example set

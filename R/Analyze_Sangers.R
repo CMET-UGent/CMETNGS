@@ -3,10 +3,15 @@
 #' @param inputfile LGC text file containing forward and reversed reads
 #' @param inputfolder folder containing the ab1 files with the raw spectrograms
 #'  from an ABI capillary electrophoresis instrument. only used when raw=TRUE
+#'  (currently defunct, but should be easy to implement if there is need)
 #' @param fwd_suffix string containing the suffix of the forward reads
 #'  (defaults to F)
 #' @param rev_suffix string containing the suffix of the reverse reads
 #'  (defaults to R)
+#' @param primerFname string containting the (abbreviated) name of the forward primer
+#'  (like it occurs in the fasta file, defaults to 27F)
+#' @param primerRname string containting the (abbreviated) name of the reverse primer
+#'  (like it occurs in the fasta file, defaults to 27F)
 #' @param fastas_only if you do not want merging to occur but want separate
 #'  fasta files to be spitted out for downstream processing in e.g. BioEdit. (
 #'  defaults to FALSE)
@@ -22,7 +27,7 @@
 #' @param ncores number of cores for sangeranalyseR::summarise.abi.folder (
 #'  defaults to 2, and will be set to 1 on windows)
 #' @importFrom Biostrings readDNAStringSet reverseComplement
-#' @importFrom sangeranalyseR merge.reads summarise.abi.folder
+#' @importFrom sangeranalyseR writeFasta SangerAlignment
 #' @importFrom dplyr filter inner_join
 #' @importFrom tidyr %>%
 #' @importFrom utils capture.output
@@ -30,22 +35,23 @@
 #' @examples
 #' ##File-based workflow (LGC-preprocessed)
 #'
-# fastademoset <- system.file("extdata","sanger_demodata.txt",
-#                               package = "CMETNGS",mustWork = TRUE)
-# consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
-#                                   rev_suffix="R",verbose=TRUE)
-#
-# ##File-based workflow for DSP in BioEdit
-#
-# fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
-#                                rev_suffix="R",fastas_only=TRUE)
+#' fastademoset <- system.file("extdata","sanger_demodata.txt",
+#'                               package = "CMETNGS",mustWork = TRUE)
+#' consensusres   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+#'                                   rev_suffix="R",primerFname="27F",
+#'                                   primerRname="1492R",verbose=TRUE)
+#' ##File-based workflow for DSP in BioEdit
+#'
+#' fastares   <- Analyze_Sangers(inputfile=fastademoset,fwd_suffix="F",
+#'                                rev_suffix="R",fastas_only=TRUE)
 #' ##Folder-based workflow
 #'
 #' # TODO: find proper example set
 #' @export
 
 Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
-                            fwd_suffix="F",rev_suffix="R",fastas_only=FALSE,
+                            fwd_suffix="F",rev_suffix="R",primerFname="27F",
+                            primerRname="1492R",fastas_only=FALSE,
                             resfolder="Results",verbose=FALSE,trim.cutoff=5e-3,
                             ncores=2,mintrim=300L,
                             ...){
@@ -83,17 +89,26 @@ Analyze_Sangers <- function(inputfile=NULL,inputfolder=NULL,
     revs.rc.s <- revs.rc[sort(names(revs.rc))]
     if(!fastas_only){
     # merge the reads
-    merged.reads <- list()
-    for(i in 1:length(fwds.s)){
-      if(verbose){cat(date()," --- merging reads",names(fwds.s)[i],
-                      "and",names(revs.rc.s)[i],".\n")}
-      reads <- c(fwds.s[i],revs.rc.s[i])
-      merged.reads[[i]] <-merge.reads(reads)
-    }
+    writeXStringSet(SangerDataSet,file.path(resfolder,"parsed.fasta"))
+    fwdprimstrin <- paste(fwd_suffix,primerFname,sep=".")
+    revprimstrin <- paste(rev_suffix,primerRname,sep=".")
+    saln <- SangerAlignment(inputSource = "FASTA",
+                            fastaFileName = file.path(resfolder,"parsed.fasta"),
+                            suffixForwardRegExp = fwdprimstrin,
+                            suffixReverseRegExp = revprimstrin,
+                            minFractionCall = 0.1,minFractionCallSA = 0.1)
+    writeFasta(saln,outputDir = "Results")
+    reslist <- saln
+    # merged.reads <- list()
+    # for(i in 1:length(fwds.s)){
+    #   if(verbose){cat(date()," --- merging reads",names(fwds.s)[i],
+    #                   "and",names(revs.rc.s)[i],".\n")}
+    #   reads <- c(fwds.s[i],revs.rc.s[i])
+    #   merged.reads[[i]] <-merge.reads(reads)
+    # }
+
     if(verbose){cat(date()," --- Merged ",length(fwds.s),"reads.\n")}
-    cons <- sapply(X=merged.reads,FUN=getconsensus)
-    writeXStringSet(DNAStringSet(cons),file.path(resfolder,"consensus.fasta"))
-    reslist <- list(forward=fwd.s,reversecomplemented=revs.rc.s,concensus=cons)
+
     } else {
       for(i in names(fwds.s)){
       writeXStringSet(fwds.s[i],filepath = file.path(resfolder,

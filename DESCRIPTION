@@ -11,7 +11,7 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
-Remotes: github::Liliad/sangeranalyseR
+Remotes: github::roblanf/sangeranalyseR
 Depends: 
     R (>= 3.6.0),
     vegan,
@@ -42,5 +42,5 @@ Imports:
     RColorBrewer,
     sangerseqR,
     ape
-Date: 2019-10-01
+Date: 2020-12-09
 RoxygenNote: 7.1.1

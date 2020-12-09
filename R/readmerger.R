@@ -8,7 +8,6 @@
 #'  reads (defaults to FALSE)
 #' @importFrom Biostrings reverseComplement DNAStringSet
 #' @importFrom sangerseqR readsangerseq primarySeq
-#' @importFrom sangeranalyseR merge.reads
 #' @importFrom ape write.dna
 #' @return a list containing the sample, consensus length and consensus seq
 #' @examples
@@ -28,7 +27,7 @@ readmerger <- function(fwdfile,revfile,samplename,onefile=FALSE,
   reads <- DNAStringSet(c(as.character(fwd),
                           as.character(rev)))
   names(reads) <- c('fwd', 'rev')
-  merged.reads <- merge.reads(reads,minInformation = 0.25, threshold=0.25)
+  merged.reads <- sangeranalyseR::merge.reads(reads,minInformation = 0.25, threshold=0.25)
   if(onefile==FALSE){
     nuccode <- list(as.character(merged.reads$consensus))
     names(nuccode) <- samplename
