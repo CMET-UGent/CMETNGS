@@ -13,7 +13,7 @@ URL: https://github.ugent.be/LabMETNGS/CMETNGS_package
 BugReports: https://github.ugent.be/LabMETNGS/CMETNGS_package/issues 
 Remotes: github::roblanf/sangeranalyseR
 Depends: 
-    R (>= 3.6.0),
+    R (>= 4.0.0),
     vegan,
     sangeranalyseR
 Imports:

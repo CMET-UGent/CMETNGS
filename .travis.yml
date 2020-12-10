@@ -7,7 +7,7 @@ warnings_are_errors: false
 
 r:
   - release
-  - oldrel
+
 
 bioc_required: true
 bioc_packages:
